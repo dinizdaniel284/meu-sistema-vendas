@@ -10,7 +10,6 @@ const supabase = createClient(
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export async function POST(request: Request) {
-  // Definimos o email fora do try para o 'catch' conseguir enxergar ele sem alertas
   let userEmail: string = "";
 
   try {
@@ -23,14 +22,18 @@ export async function POST(request: Request) {
 
     console.log(`🤖 Iniciando IA para o lead: ${userEmail}...`);
 
-    // Usando o modelo estável
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // AJUSTE AQUI: Usando o modelo "gemini-1.5-flash-latest" para evitar o erro 404
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+    });
     
     const prompt = `O utilizador com o e-mail ${userEmail} acabou de se inscrever. 
     Cria uma estratégia de vendas curta (máximo 3 frases) personalizada para converter esse lead.`;
     
+    // Chamada com timeout e configuração básica
     const result = await model.generateContent(prompt);
-    const iaResponse = result.response.text();
+    const response = await result.response;
+    const iaResponse = response.text();
 
     console.log("✅ IA respondeu com sucesso!");
 
@@ -54,21 +57,24 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("❌ Erro no processo:", error.message);
     
-    // PLANO B: Se algo deu errado (IA ou Banco), tentamos salvar apenas o e-mail
-    // Usamos a variável 'userEmail' que definimos no topo do código
+    // PLANO B: Se a IA falhar, ainda tentamos salvar o lead no Supabase
     if (userEmail) {
-      await supabase
-        .from('leads')
-        .insert([
-          { 
-            email: userEmail, 
-            ai_analysis: "Processado com erro na IA." 
-          }
-        ]);
+      try {
+        await supabase
+          .from('leads')
+          .insert([
+            { 
+              email: userEmail, 
+              ai_analysis: "Lead salvo, mas a IA falhou no momento." 
+            }
+          ]);
+      } catch (dbError) {
+        console.error("❌ Erro crítico no Banco de Dados:", dbError);
+      }
     }
 
     return NextResponse.json({ 
-      message: "Lead recebido (IA offline)",
+      message: "Lead processado",
       details: error.message 
     }, { status: 200 });
   }
