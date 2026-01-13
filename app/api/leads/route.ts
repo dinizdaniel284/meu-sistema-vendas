@@ -7,9 +7,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY!
-);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
@@ -17,12 +15,12 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // ✅ Mantendo o modelo que o ChatGPT sugeriu e que funcionou!
-    const model = genAI.getGenerativeModel({
-      model: "models/gemini-1.5-flash"
-    });
+    // ✅ AQUI ESTÁ A VACINA: Forçando v1 e o modelo estável
+    const model = genAI.getGenerativeModel(
+      { model: "gemini-1.5-flash" },
+      { apiVersion: 'v1' }
+    );
 
-    // 🚀 NOVO PROMPT: Transformando a resposta em um Kit de Vendas
     const prompt = `
       Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
       Gere um plano de ação rápido seguindo EXATAMENTE este formato:
@@ -39,21 +37,12 @@ export async function POST(req: Request) {
       Responda em Português do Brasil, de forma clara e profissional.
     `;
 
-    // ✅ Mantendo a forma de chamada que deu certo
     const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ]
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
     });
 
     const text = result.response.text();
 
-    // ✅ Inserir no Supabase (Mantendo sua captura de leads)
     const { error } = await supabase
       .from("leads")
       .insert([{ email, nicho, ai_analysis: text }]);
@@ -64,9 +53,8 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("ERRO NO LOG:", error);
-
     return NextResponse.json(
-      { ia_result: "A IA está processando. Tente novamente em 30 segundos." },
+      { ia_result: "IA em atualização rápida. Tente em 30 segundos." },
       { status: 500 }
     );
   }
