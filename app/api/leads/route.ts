@@ -15,12 +15,9 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // TESTE 1: Nome padrão (O que deveria funcionar)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // MUDANÇA AQUI: Usando o modelo PRO que é o mais estável para evitar o erro 404
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
-    // Se o erro 404 persistir mesmo após o push, mude a linha acima para:
-    // const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
     const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
     
     const result = await model.generateContent(prompt);
@@ -40,6 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ia_result: text });
 
   } catch (error: any) {
+    // Agora o log vai nos dizer se o erro mudou de 404 para outra coisa
     console.error("ERRO COMPLETO NO LOG:", error);
     return NextResponse.json({ 
       ia_result: `Erro Técnico: ${error.message || "Falha na conexão"}` 
