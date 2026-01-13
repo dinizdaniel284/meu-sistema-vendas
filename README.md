@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Sistema de Vendas IA - Marketing Estratégico
 
-## Getting Started
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://meu-sistema-vendas.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-blue?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-AI-orange?style=for-the-badge&logo=google-gemini)](https://aistudio.google.com/)
 
-First, run the development server:
+O **Sistema de Vendas IA** é uma plataforma inteligente desenvolvida para transformar nichos de mercado em estratégias de vendas persuasivas em segundos. Utilizando o poder do **Google Gemini 1.5 Flash**, o sistema analisa o segmento do usuário e gera copies de alto impacto.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tecnologias de Elite
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+O projeto foi construído com o que há de mais moderno no ecossistema Full Stack:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* **Frontend:** [Next.js 15](https://nextjs.org/) (App Router) com **Tailwind CSS**.
+* **Inteligência Artificial:** [Google Generative AI](https://aistudio.google.com/) (Gemini 1.5 Flash).
+* **Banco de Dados:** [Supabase](https://supabase.com/) (PostgreSQL) para captura de leads em tempo real.
+* **Hospedagem:** [Vercel](https://vercel.com/) com borda (Edge) em São Paulo para baixa latência.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ⚡ Funcionalidades Principal
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [x] **Captura de Leads:** Integração direta com Supabase.
+- [x] **IA Engine:** Geração de estratégias customizadas por nicho.
+- [x] **Interface Premium:** Design Dark Mode focado em conversão.
+- [x] **Checkout Ready:** Fluxo preparado para integração com gateways de pagamento.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🚀 Como rodar o projeto localmente
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone o repositório:**
+   ```bash
+   git clone [https://github.com/dinizdaniel284/meu-sistema-vendas.git](https://github.com/dinizdaniel284/meu-sistema-vendas.git)
+   
