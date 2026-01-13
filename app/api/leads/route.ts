@@ -1,81 +1,42 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'; // O correto é 'js' no final
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// O resto do código continua igual...
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+// ...
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export async function POST(request: Request) {
-  let userEmail: string = "";
-
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    userEmail = body.email;
+    const { email, nicho } = await req.json();
 
-    if (!userEmail) {
-      return NextResponse.json({ error: "E-mail é obrigatório" }, { status: 400 });
-    }
-
-    console.log(`🤖 Iniciando IA para o lead: ${userEmail}...`);
-
-    // AJUSTE AQUI: Usando o modelo "gemini-1.5-flash-latest" para evitar o erro 404
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-    });
+    // 1. IA gera estratégia baseada no NICHO do usuário
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
     
-    const prompt = `O utilizador com o e-mail ${userEmail} acabou de se inscrever. 
-    Cria uma estratégia de vendas curta (máximo 3 frases) personalizada para converter esse lead.`;
-    
-    // Chamada com timeout e configuração básica
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const iaResponse = response.text();
+    const text = result.response.text();
 
-    console.log("✅ IA respondeu com sucesso!");
-
-    // 1. TENTA SALVAR COM A ANÁLISE DA IA
-    const { error: supabaseError } = await supabase
+    // 2. Salva no Supabase
+    const { error } = await supabase
       .from('leads')
-      .insert([
-        { 
-          email: userEmail, 
-          ai_analysis: iaResponse 
-        }
-      ]);
+      .insert([{ 
+        email, 
+        nicho, // Lembre-se de ter essa coluna no Supabase!
+        ai_analysis: text 
+      }]);
 
-    if (supabaseError) throw supabaseError;
+    if (error) throw error;
 
-    return NextResponse.json({ 
-      message: "Sucesso total!",
-      ia_result: iaResponse 
-    }, { status: 200 });
+    return NextResponse.json({ ia_result: text });
 
-  } catch (error: any) {
-    console.error("❌ Erro no processo:", error.message);
-    
-    // PLANO B: Se a IA falhar, ainda tentamos salvar o lead no Supabase
-    if (userEmail) {
-      try {
-        await supabase
-          .from('leads')
-          .insert([
-            { 
-              email: userEmail, 
-              ai_analysis: "Lead salvo, mas a IA falhou no momento." 
-            }
-          ]);
-      } catch (dbError) {
-        console.error("❌ Erro crítico no Banco de Dados:", dbError);
-      }
-    }
-
-    return NextResponse.json({ 
-      message: "Lead processado",
-      details: error.message 
-    }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ ia_result: "Venda mais usando o poder da IA e Next.js!" }, { status: 500 });
   }
 }
