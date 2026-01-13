@@ -2,13 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// IA client — chave PRIVADA
 const genAI = new GoogleGenerativeAI(
   process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 );
@@ -19,20 +17,20 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // modelo correto
+    // ✅ Modelo disponível e estável
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "models/gemini-2.5-flash"
     });
 
     const prompt = `
-    O usuário vende ${nicho}.
-    Crie uma estratégia curta de vendas, com no máximo 3 frases,
-    persuasiva e prática, para ele atrair clientes hoje.
-    Use gatilhos mentais mas sem promessas irreais.
-    Responda em português do Brasil.
-    `;
+O usuário vende ${nicho}.
+Crie uma estratégia curta de vendas, com no máximo 3 frases,
+persuasiva e prática, para ele atrair clientes hoje.
+Use gatilhos mentais mas sem promessas irreais.
+Português do Brasil.
+`;
 
-    // ⭐ CORREÇÃO: role obrigatório
+    // ✅ Forma correta de chamar generateContent
     const result = await model.generateContent({
       contents: [
         {
@@ -46,32 +44,21 @@ export async function POST(req: Request) {
 
     const text = result.response.text();
 
-    // salva no Supabase
+    // ✅ Inserir no Supabase
     const { error } = await supabase
       .from("leads")
-      .insert([
-        {
-          email,
-          nicho,
-          ai_analysis: text,
-        }
-      ]);
+      .insert([{ email, nicho, ai_analysis: text }]);
 
     if (error) throw error;
 
-    return NextResponse.json({
-      ia_result: text,
-    });
+    return NextResponse.json({ ia_result: text });
 
   } catch (error: any) {
     console.error("ERRO NO LOG:", error);
 
     return NextResponse.json(
-      {
-        ia_result:
-          "IA em manutenção rápida. Tente novamente em alguns instantes.",
-      },
+      { ia_result: "IA em manutenção. Tente mais tarde." },
       { status: 500 }
     );
   }
-}
+      }
