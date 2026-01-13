@@ -28,10 +28,10 @@ export default function Home() {
         setEnviado(true);
         setEstrategia(data.ia_result);
       } else {
-        alert("Erro na resposta da IA.");
+        alert(data.ia_result || "Erro na resposta da IA.");
       }
     } catch (err) {
-      alert("Erro ao conectar.");
+      alert("Erro ao conectar com o servidor.");
     } finally {
       setCarregando(false);
     }
@@ -98,11 +98,11 @@ export default function Home() {
                 
                 <div className="p-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-transform hover:scale-105">
                   <button 
-                    onClick={() => window.open('https://recargapay.com.br/r/JaqloR4', '_blank')}
+                    onClick={() => alert('Função de gerar página futura aqui!')}
                     className="w-full bg-[#020617] text-white font-black py-5 rounded-[14px] flex flex-col items-center"
                   >
-                    <span className="text-lg text-green-400 uppercase">Acessar Guia Completo</span>
-                    <span className="text-[10px] text-slate-400 opacity-80">Scripts de Venda + Treinamento por R$ 47</span>
+                    <span className="text-lg text-green-400 uppercase">Gerar Página Personalizada</span>
+                    <span className="text-[10px] text-slate-400 opacity-80">Funcionalidade futura para criar mini-site</span>
                   </button>
                 </div>
               </div>
@@ -147,4 +147,4 @@ export default function Home() {
       </div>
     </main>
   );
-}
+                                                                                                              }
