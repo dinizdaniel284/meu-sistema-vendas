@@ -1,13 +1,12 @@
-import { createClient } from '@supabase/supabase-js'; // O correto é 'js' no final
+import { createClient } from '@supabase/supabase-js'; 
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// O resto do código continua igual...
+// AJUSTE AQUI: Mudamos para ANON_KEY que é a que a Vercel já conhece
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! 
 );
-// ...
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -27,7 +26,7 @@ export async function POST(req: Request) {
       .from('leads')
       .insert([{ 
         email, 
-        nicho, // Lembre-se de ter essa coluna no Supabase!
+        nicho, 
         ai_analysis: text 
       }]);
 
