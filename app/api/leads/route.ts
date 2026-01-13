@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! 
 );
 
-// Forçamos a inicialização limpa
+// Inicialização estável
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export async function POST(req: Request) {
@@ -16,15 +16,17 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // MUDANÇA CRITICAL: Usando o modelo flash-8b que é o mais compatível com v1beta atual
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+    // Mudamos para o modelo padrão estável (sem o -8b)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
     
-    // Usamos o método mais simples de geração
+    // Processo de geração mais robusto
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
 
+    // Salva no banco com a análise gerada
     const { error } = await supabase
       .from('leads')
       .insert([{ 
@@ -40,9 +42,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("ERRO NO LOG:", error);
     
-    // Se der erro de novo, vamos avisar exatamente qual é
     return NextResponse.json({ 
-      ia_result: `Erro: Verifique sua chave ou modelo no Log.` 
+      ia_result: "Erro ao conectar com a IA. Tente novamente em instantes." 
     }, { status: 500 });
   }
 }
