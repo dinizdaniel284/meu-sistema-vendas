@@ -7,12 +7,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! 
 );
 
-// AJUSTADO: Agora o nome bate com o seu arquivo .env
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
     const { email, nicho } = await req.json();
+
+    // Verificação de segurança para o banco
+    if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
@@ -32,8 +34,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ia_result: text });
 
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ ia_result: "Venda mais usando o poder da IA e Next.js!" }, { status: 500 });
+  } catch (error: any) {
+    console.error("ERRO COMPLETO:", error);
+    return NextResponse.json({ 
+      ia_result: `Erro: ${error.message || "Falha na conexão"}` 
+    }, { status: 500 });
   }
 }
