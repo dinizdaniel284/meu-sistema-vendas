@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const [email, setEmail] = useState('');
-  const [nicho, setNicho] = useState(''); // O PULO DO GATO
+  const [nicho, setNicho] = useState(''); 
   const [enviado, setEnviado] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [estrategia, setEstrategia] = useState('');
@@ -19,7 +19,7 @@ export default function Home() {
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, nicho }), // Enviando o nicho para a IA
+        body: JSON.stringify({ email, nicho }),
       });
       
       const data = await response.json();
@@ -27,6 +27,8 @@ export default function Home() {
       if (response.ok) {
         setEnviado(true);
         setEstrategia(data.ia_result);
+      } else {
+        alert("Erro na resposta da IA.");
       }
     } catch (err) {
       alert("Erro ao conectar.");
@@ -37,6 +39,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#020617] text-slate-200 font-sans relative overflow-hidden">
+      {/* Background Glows */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 blur-[120px]" />
@@ -90,24 +93,23 @@ export default function Home() {
             ) : (
               <div className="space-y-6 animate-fade-in">
                 <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-bold flex items-center gap-3">
-                  <span>✓</span> Estratégia Personalizada Pronta!
+                  <span>✓</span> Estratégia Gerada com Sucesso!
                 </div>
                 
-                {/* BOTÃO COM SEU LINK DO RECARGAPAY */}
                 <div className="p-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-transform hover:scale-105">
                   <button 
                     onClick={() => window.open('https://recargapay.com.br/r/JaqloR4', '_blank')}
                     className="w-full bg-[#020617] text-white font-black py-5 rounded-[14px] flex flex-col items-center"
                   >
-                    <span className="text-lg text-green-400">QUERO O PASSO A PASSO COMPLETO</span>
-                    <span className="text-[10px] text-slate-400 opacity-80">Acesse o código e o treinamento por R$ 47</span>
+                    <span className="text-lg text-green-400 uppercase">Acessar Guia Completo</span>
+                    <span className="text-[10px] text-slate-400 opacity-80">Scripts de Venda + Treinamento por R$ 47</span>
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* MOCKUP DA IA */}
+          {/* MOCKUP DA IA - AREA ONDE A RESPOSTA APARECE */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
             <div className="relative aspect-video bg-slate-950 border border-white/10 rounded-2xl flex flex-col overflow-hidden">
@@ -115,24 +117,27 @@ export default function Home() {
                 <span className="text-[10px] text-blue-400 font-mono font-bold tracking-widest uppercase">
                   {carregando ? 'Processing Data...' : 'AI Analysis Board'}
                 </span>
-                <div className="text-[10px] text-slate-600 font-mono">ID: {nicho ? nicho.toUpperCase() : 'WAITING'}</div>
+                <div className="text-[10px] text-slate-600 font-mono italic">
+                  {nicho ? `Nicho: ${nicho.toUpperCase()}` : 'Waiting Input'}
+                </div>
               </div>
               
               <div className="flex-1 p-6 font-mono overflow-y-auto">
                 {carregando ? (
                   <div className="space-y-4">
-                    <div className="text-blue-400 text-sm animate-pulse">Analizando o nicho: {nicho}...</div>
+                    <div className="text-blue-400 text-sm animate-pulse">Analisando mercado para: {nicho}...</div>
                     <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                      <div className="bg-blue-500 h-full animate-progress-line" />
+                      <div className="bg-blue-500 h-full animate-progress-line" style={{ width: '50%' }} />
                     </div>
                   </div>
                 ) : estrategia ? (
                   <div className="space-y-4 animate-fade-in text-sm leading-relaxed italic text-blue-100">
+                    <span className="text-[10px] text-blue-500 block not-italic font-bold mb-2">// ESTRATÉGIA IA:</span>
                     "{estrategia}"
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Aguardando dados de entrada...</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Aguardando dados para processamento...</p>
                   </div>
                 )}
               </div>
