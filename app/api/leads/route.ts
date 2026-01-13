@@ -1,12 +1,15 @@
+// app/api/leads/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// 🔹 Conexão Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// 🔹 Conexão Google Generative AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export async function POST(req: Request) {
@@ -15,12 +18,12 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // ✅ AQUI ESTÁ A VACINA: Forçando v1 e o modelo estável
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash" },
-      { apiVersion: 'v1' }
-    );
+    // 🔹 Modelo válido e estável da Google
+    const model = genAI.getGenerativeModel({
+      model: "models/gemini-2.5-flash" // ✅ substituído o antigo gemini-1.5
+    });
 
+    // 🔹 Prompt poderoso e bem estruturado
     const prompt = `
       Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
       Gere um plano de ação rápido seguindo EXATAMENTE este formato:
@@ -37,12 +40,19 @@ export async function POST(req: Request) {
       Responda em Português do Brasil, de forma clara e profissional.
     `;
 
+    // 🔹 Chamada correta do generateContent
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ]
     });
 
     const text = result.response.text();
 
+    // 🔹 Salvar lead no Supabase
     const { error } = await supabase
       .from("leads")
       .insert([{ email, nicho, ai_analysis: text }]);
