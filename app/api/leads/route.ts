@@ -13,16 +13,19 @@ export async function POST(req: Request) {
   try {
     const { email, nicho } = await req.json();
 
-    // Verificação de segurança
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // MUDANÇA AQUI: Adicionado o '-latest' para evitar o erro 404 que vimos no log
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // TESTE 1: Nome padrão (O que deveria funcionar)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
+    // Se o erro 404 persistir mesmo após o push, mude a linha acima para:
+    // const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
     const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
     
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
 
     const { error } = await supabase
       .from('leads')
@@ -37,11 +40,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ia_result: text });
 
   } catch (error: any) {
-    console.error("ERRO COMPLETO:", error);
-    
-    // Retornamos o erro real para o front-end conseguir mostrar se algo der errado
+    console.error("ERRO COMPLETO NO LOG:", error);
     return NextResponse.json({ 
-      ia_result: `Erro: ${error.message || "Falha na conexão"}` 
+      ia_result: `Erro Técnico: ${error.message || "Falha na conexão"}` 
     }, { status: 500 });
   }
 }
