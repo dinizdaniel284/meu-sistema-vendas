@@ -82,18 +82,32 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-bold flex items-center gap-3 animate-fade-in">
-                <span className="text-xl">✓</span> Acesso liberado! Analise o relatório ao lado.
+              <div className="space-y-6 animate-fade-in">
+                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-bold flex items-center gap-3">
+                  <span className="text-xl">✓</span> Relatório Gerado! Analise ao lado.
+                </div>
+                
+                {/* BOTÃO DE VENDA COM SEU LINK DO RECARGAPAY */}
+                <div className="p-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-transform hover:scale-105 active:scale-95">
+                  <button 
+                    onClick={() => window.open('https://recargapay.com.br/r/JaqloR4', '_blank')}
+                    className="w-full bg-[#020617] hover:bg-transparent text-white font-black py-5 rounded-[14px] transition-all flex flex-col items-center group"
+                  >
+                    <span className="text-lg tracking-tight text-green-400 group-hover:text-white">DESBLOQUEAR ACESSO VIP</span>
+                    <span className="text-[10px] text-slate-400 font-medium uppercase opacity-80 group-hover:text-white/80 text-center px-4">
+                      Garanta seu guia completo + scripts de venda por apenas R$ 47
+                    </span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          {/* MOCKUP DA IA - VERSÃO INSANA */}
+          {/* MOCKUP DA IA */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
             <div className="relative aspect-video bg-slate-950 border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
               
-              {/* Top Bar */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${carregando ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
@@ -113,10 +127,6 @@ export default function Home() {
                     </div>
                     <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
                       <div className="bg-blue-500 h-full animate-progress-line" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-[8px] text-slate-600 uppercase">
-                      <p className="animate-pulse">Analysing Domain...</p>
-                      <p className="animate-pulse delay-75">Market Fit Search...</p>
                     </div>
                   </div>
                 ) : estrategia ? (
@@ -141,15 +151,14 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-30">
-                    <div className="w-12 h-12 border-2 border-dashed border-slate-700 rounded-full flex items-center justify-center text-xl">
+                    <div className="w-12 h-12 border-2 border-dashed border-slate-700 rounded-full flex items-center justify-center text-xl text-white">
                       🎯
                     </div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Aguardando sinal do sistema para análise...</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Aguardando sinal para análise...</p>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
               <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex justify-between items-center text-[8px] text-slate-600 font-mono">
                  <span className="flex items-center gap-1"><div className="w-1 h-1 bg-blue-500 rounded-full" /> SUPABASE_DB: ACTIVE</span>
                  <span>SECURE_ENCRYPTION_AES256</span>
