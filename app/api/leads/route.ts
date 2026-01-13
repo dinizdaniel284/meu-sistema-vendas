@@ -13,10 +13,12 @@ export async function POST(req: Request) {
   try {
     const { email, nicho } = await req.json();
 
-    // Verificação de segurança para o banco
+    // Verificação de segurança
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // MUDANÇA AQUI: Adicionado o '-latest' para evitar o erro 404 que vimos no log
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    
     const prompt = `O usuário vende ${nicho}. Como um especialista em Marketing Digital e IA, crie uma estratégia de vendas curta (máximo 3 frases) e impactante para ele atrair mais clientes hoje.`;
     
     const result = await model.generateContent(prompt);
@@ -36,6 +38,8 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("ERRO COMPLETO:", error);
+    
+    // Retornamos o erro real para o front-end conseguir mostrar se algo der errado
     return NextResponse.json({ 
       ia_result: `Erro: ${error.message || "Falha na conexão"}` 
     }, { status: 500 });
