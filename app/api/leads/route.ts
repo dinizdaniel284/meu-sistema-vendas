@@ -17,20 +17,29 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // ✅ Modelo disponível e estável
+    // ✅ Mantendo o modelo que o ChatGPT sugeriu e que funcionou!
     const model = genAI.getGenerativeModel({
-      model: "models/gemini-2.5-flash"
+      model: "models/gemini-1.5-flash"
     });
 
+    // 🚀 NOVO PROMPT: Transformando a resposta em um Kit de Vendas
     const prompt = `
-O usuário vende ${nicho}.
-Crie uma estratégia curta de vendas, com no máximo 3 frases,
-persuasiva e prática, para ele atrair clientes hoje.
-Use gatilhos mentais mas sem promessas irreais.
-Português do Brasil.
-`;
+      Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
+      Gere um plano de ação rápido seguindo EXATAMENTE este formato:
 
-    // ✅ Forma correta de chamar generateContent
+      🎯 ESTRATÉGIA MATADORA:
+      (Uma estratégia prática de 2 frases com gatilhos mentais para aplicar agora)
+
+      📱 LEGENDA PRONTA PARA POST:
+      (Uma legenda persuasiva com emojis e 3 hashtags para Instagram/WhatsApp)
+
+      💡 DICA DE OURO:
+      (Uma sacada extra de fechamento de vendas que quase ninguém usa)
+
+      Responda em Português do Brasil, de forma clara e profissional.
+    `;
+
+    // ✅ Mantendo a forma de chamada que deu certo
     const result = await model.generateContent({
       contents: [
         {
@@ -44,7 +53,7 @@ Português do Brasil.
 
     const text = result.response.text();
 
-    // ✅ Inserir no Supabase
+    // ✅ Inserir no Supabase (Mantendo sua captura de leads)
     const { error } = await supabase
       .from("leads")
       .insert([{ email, nicho, ai_analysis: text }]);
@@ -57,8 +66,8 @@ Português do Brasil.
     console.error("ERRO NO LOG:", error);
 
     return NextResponse.json(
-      { ia_result: "IA em manutenção. Tente mais tarde." },
+      { ia_result: "A IA está processando. Tente novamente em 30 segundos." },
       { status: 500 }
     );
   }
-      }
+}
