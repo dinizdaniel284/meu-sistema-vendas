@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -26,6 +27,7 @@ export default function Home() {
 
       if (response.ok) {
         setEnviado(true);
+        // Aqui a IA dá só um "gostinho" do que vem por aí
         setEstrategia(data.ia_result);
       } else {
         alert(data.ia_result || "Erro na resposta da IA.");
@@ -50,9 +52,15 @@ export default function Home() {
           <div className="text-2xl font-black text-white italic tracking-tighter">
             DINIZ<span className="text-blue-500 underline decoration-2 underline-offset-4">DEV</span>
           </div>
-          <div className="flex gap-4 items-center">
-             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-             <span className="text-[10px] font-bold text-slate-400 uppercase">AI Engine Online</span>
+          <div className="flex gap-6 items-center">
+             <div className="hidden md:flex gap-2 items-center">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">AI Engine Online</span>
+             </div>
+             {/* BOTÃO DE LOGIN LUXUOSO NO TOPO */}
+             <Link href="/login" className="px-5 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-widest">
+                Área VIP
+             </Link>
           </div>
         </nav>
 
@@ -85,7 +93,7 @@ export default function Home() {
                 <button 
                   onClick={enviarLead}
                   disabled={carregando}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all active:scale-95 disabled:opacity-50 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
                 >
                   {carregando ? 'CONSULTANDO CÉREBRO IA...' : 'GERAR MINHA ESTRATÉGIA AGORA'}
                 </button>
@@ -93,23 +101,25 @@ export default function Home() {
             ) : (
               <div className="space-y-6 animate-fade-in">
                 <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-bold flex items-center gap-3">
-                  <span>✓</span> Estratégia Gerada com Sucesso!
+                  <span>✓</span> Estratégia Inicial Liberada!
                 </div>
                 
-                <div className="p-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-transform hover:scale-105">
-                  <button 
-                    onClick={() => alert('Função de gerar página futura aqui!')}
+                {/* BOTÃO PARA DESBLOQUEAR O CONTEÚDO COMPLETO - MANDA PRO LOGIN */}
+                <div className="p-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-transform hover:scale-105">
+                  <Link 
+                    href="/login"
                     className="w-full bg-[#020617] text-white font-black py-5 rounded-[14px] flex flex-col items-center"
                   >
-                    <span className="text-lg text-green-400 uppercase">Gerar Página Personalizada</span>
-                    <span className="text-[10px] text-slate-400 opacity-80">Funcionalidade futura para criar mini-site</span>
-                  </button>
+                    <span className="text-lg text-white uppercase tracking-tight">🔓 Desbloquear Plano Completo</span>
+                    <span className="text-[10px] text-blue-400 opacity-80 uppercase font-bold mt-1">Acesso Exclusivo para Membros</span>
+                  </Link>
                 </div>
+                <button onClick={() => setEnviado(false)} className="text-xs text-slate-500 underline underline-offset-4 hover:text-white transition-colors">Testar outro nicho</button>
               </div>
             )}
           </div>
 
-          {/* MOCKUP DA IA - AREA ONDE A RESPOSTA APARECE */}
+          {/* MOCKUP DA IA */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
             <div className="relative aspect-video bg-slate-950 border border-white/10 rounded-2xl flex flex-col overflow-hidden">
@@ -132,8 +142,13 @@ export default function Home() {
                   </div>
                 ) : estrategia ? (
                   <div className="space-y-4 animate-fade-in text-sm leading-relaxed italic text-blue-100">
-                    <span className="text-[10px] text-blue-500 block not-italic font-bold mb-2">// ESTRATÉGIA IA:</span>
+                    <span className="text-[10px] text-blue-500 block not-italic font-bold mb-2">// PRÉVIA DA ESTRATÉGIA:</span>
                     "{estrategia}"
+                    <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg not-italic">
+                       <p className="text-[10px] text-blue-400 uppercase font-bold tracking-tighter animate-pulse">
+                         [!] Faça login para ver os anúncios e a legenda pronta.
+                       </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
@@ -147,4 +162,4 @@ export default function Home() {
       </div>
     </main>
   );
-                                                                                                              }
+}
