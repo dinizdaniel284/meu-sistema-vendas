@@ -40,7 +40,7 @@ export default function LoginPage() {
   }, [router]);
 
   // Configuração da Rede Neural
-  const particlesOptions = useMemo(() => ({
+  const particlesOptions: any = useMemo(() => ({
     background: { color: { value: "#050505" } },
     fpsLimit: 120,
     interactivity: {
@@ -65,7 +65,7 @@ export default function LoginPage() {
       move: {
         enable: true,
         speed: 1.5,
-        direction: "none",
+        direction: "none" as const, // O segredo está nesse "as const"
         outModes: { default: "bounce" },
       },
       number: { density: { enable: true, area: 800 }, value: 100 },
