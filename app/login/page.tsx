@@ -15,18 +15,21 @@ const supabase = createClient(
 export default function LoginPage() {
   const [origin, setOrigin] = useState('');
   const [init, setInit] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // Detectar celular
   const router = useRouter();
 
   useEffect(() => {
+    // Detecta se é celular para otimizar
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 768);
+      setOrigin(window.location.origin);
+    }
+
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
     }).then(() => {
       setInit(true);
     });
-
-    if (typeof window !== 'undefined') {
-      setOrigin(window.location.origin);
-    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
@@ -37,78 +40,64 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  // CONFIGURAÇÃO NEON EXTREMA: 250 Neurônios e Brilho Máximo
   const particlesOptions: any = useMemo(() => ({
     background: { color: { value: "#02040a" } },
-    fpsLimit: 120,
+    fpsLimit: 60, // Limitamos a 60fps para não fritar o celular
     interactivity: {
       events: {
-        onHover: { enable: true, mode: "grab" },
+        onHover: { enable: !isMobile, mode: "grab" }, // Desativa hover no mobile (não tem mouse)
         onClick: { enable: true, mode: "push" },
       },
       modes: {
-        grab: { distance: 250, links: { opacity: 0.8 } },
-        push: { quantity: 10 },
+        grab: { distance: 200, links: { opacity: 0.5 } },
+        push: { quantity: 4 },
       },
     },
     particles: {
-      color: { value: ["#10b981", "#34d399", "#059669"] }, // Variações de verde neon
+      color: { value: "#10b981" },
       links: {
         color: "#10b981",
-        distance: 110, // Teia muito mais fechada
+        distance: 110,
         enable: true,
-        opacity: 0.5,
-        width: 1.5,
-        shadow: {
-          enable: true,
-          blur: 5,
-          color: "#10b981"
-        }
+        opacity: 0.3,
+        width: 1,
       },
       move: {
         enable: true,
-        speed: 2.2,
+        speed: isMobile ? 1.2 : 2, // Mais devagar no mobile para fluidez
         direction: "none" as const,
         outModes: { default: "out" },
       },
       number: { 
-        density: { enable: true, area: 500 }, // Área menor = muito mais densidade
-        value: 250 // O ápice da rede neural
+        density: { enable: true, area: 800 }, 
+        value: isMobile ? 60 : 200 // Reduz para 60 no celular, mantém 200 no PC
       },
-      opacity: {
-        value: { min: 0.3, max: 0.8 },
-        animation: { enable: true, speed: 2, sync: false }
-      },
+      opacity: { value: 0.5 },
       shape: { type: "circle" },
-      size: { value: { min: 1, max: 3 } },
+      size: { value: { min: 1, max: 2.5 } },
     },
     detectRetina: true,
-  }), []);
+  }), [isMobile]);
 
   return (
-    <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a]">
-      {/* LUZ NEON DE FUNDO: Efeito Aurora Boreal Esmeralda */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 blur-[150px] rounded-full" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/10 blur-[150px] rounded-full" />
+    <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a] p-4">
+      {/* Luzes Neon de Fundo */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)]" />
 
       {init && (
-        <Particles
-          id="tsparticles"
-          options={particlesOptions}
-          className="absolute inset-0 z-0"
-        />
+        <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />
       )}
 
-      <div className="relative z-10 w-full max-w-[430px] p-6">
-        <div className="bg-black/60 backdrop-blur-3xl p-10 rounded-[3rem] border-2 border-emerald-500/30 shadow-[0_0_80px_rgba(16,185,129,0.15)]">
-          <div className="flex flex-col items-center mb-10">
-            <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.6)] animate-pulse">
-              <span className="text-black text-4xl font-black">D</span>
+      {/* Card de Login Menor e mais Luxuoso */}
+      <div className="relative z-10 w-full max-w-[360px] animate-fade-in">
+        <div className="bg-black/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2rem] border border-emerald-500/20 shadow-2xl">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+              <span className="text-black text-2xl font-black italic">D</span>
             </div>
-            <h1 className="text-3xl font-black text-white tracking-[0.1em] uppercase">
-              NET<span className="text-emerald-500 italic">WORK</span> IA
+            <h1 className="text-xl font-black text-white tracking-widest uppercase text-center">
+              NET<span className="text-emerald-500">WORK</span>
             </h1>
-            <div className="h-1 w-20 bg-emerald-500 mt-2 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
           </div>
 
           <Auth
@@ -124,7 +113,7 @@ export default function LoginPage() {
                     inputBorder: 'rgba(16,185,129,0.2)',
                     inputText: 'white',
                   },
-                  radii: { borderRadiusButton: '16px', inputBorderRadius: '16px' }
+                  radii: { borderRadiusButton: '12px', inputBorderRadius: '12px' }
                 },
               },
             }}
@@ -133,8 +122,9 @@ export default function LoginPage() {
             redirectTo={`${origin}/dashboard`}
           />
         </div>
-        <p className="text-center text-emerald-500/40 text-[9px] mt-8 uppercase tracking-[0.5em] font-bold animate-pulse">
-          Sincronizando com a Matrix...
+        
+        <p className="text-center text-emerald-500/30 text-[8px] mt-6 uppercase tracking-[0.4em] font-bold">
+          © 2026 DINIZ DEV // SISTEMA OTIMIZADO
         </p>
       </div>
     </main>
