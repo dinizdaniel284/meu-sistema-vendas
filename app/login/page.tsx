@@ -37,9 +37,9 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  // CONFIGURAÇÃO TURBINADA: Mais neurônios e conexões densas
+  // CONFIGURAÇÃO NEON EXTREMA: 250 Neurônios e Brilho Máximo
   const particlesOptions: any = useMemo(() => ({
-    background: { color: { value: "#020617" } }, // Fundo azul marinho quase preto (mais luxuoso)
+    background: { color: { value: "#02040a" } },
     fpsLimit: 120,
     interactivity: {
       events: {
@@ -47,43 +47,49 @@ export default function LoginPage() {
         onClick: { enable: true, mode: "push" },
       },
       modes: {
-        grab: { distance: 220, links: { opacity: 0.6 } },
-        push: { quantity: 6 },
+        grab: { distance: 250, links: { opacity: 0.8 } },
+        push: { quantity: 10 },
       },
     },
     particles: {
-      color: { value: "#10b981" },
+      color: { value: ["#10b981", "#34d399", "#059669"] }, // Variações de verde neon
       links: {
         color: "#10b981",
-        distance: 130, // Menor distância para criar uma teia mais fechada
+        distance: 110, // Teia muito mais fechada
         enable: true,
-        opacity: 0.3,
-        width: 1,
+        opacity: 0.5,
+        width: 1.5,
+        shadow: {
+          enable: true,
+          blur: 5,
+          color: "#10b981"
+        }
       },
       move: {
         enable: true,
-        speed: 1.8,
+        speed: 2.2,
         direction: "none" as const,
         outModes: { default: "out" },
       },
       number: { 
-        density: { enable: true, area: 600 }, 
-        value: 180 // Quase dobramos a quantidade de neurônios
+        density: { enable: true, area: 500 }, // Área menor = muito mais densidade
+        value: 250 // O ápice da rede neural
       },
       opacity: {
-        value: { min: 0.2, max: 0.6 },
-        animation: { enable: true, speed: 1, sync: false }
+        value: { min: 0.3, max: 0.8 },
+        animation: { enable: true, speed: 2, sync: false }
       },
       shape: { type: "circle" },
-      size: { value: { min: 1, max: 2.5 } },
+      size: { value: { min: 1, max: 3 } },
     },
     detectRetina: true,
   }), []);
 
   return (
-    <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#020617]">
-      {/* GLOW DE FUNDO: Efeito de profundidade luxuoso */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1)_0%,_transparent_65%)]" />
+    <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a]">
+      {/* LUZ NEON DE FUNDO: Efeito Aurora Boreal Esmeralda */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 blur-[150px] rounded-full" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/10 blur-[150px] rounded-full" />
 
       {init && (
         <Particles
@@ -93,19 +99,16 @@ export default function LoginPage() {
         />
       )}
 
-      <div className="relative z-10 w-full max-w-[420px] p-6">
-        {/* CARD GLASSMORPHISM REFORÇADO */}
-        <div className="bg-zinc-950/50 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-emerald-500/20 shadow-[0_0_50px_rgba(0,0,0,0.8),_0_0_20px_rgba(16,185,129,0.05)]">
+      <div className="relative z-10 w-full max-w-[430px] p-6">
+        <div className="bg-black/60 backdrop-blur-3xl p-10 rounded-[3rem] border-2 border-emerald-500/30 shadow-[0_0_80px_rgba(16,185,129,0.15)]">
           <div className="flex flex-col items-center mb-10">
-            <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center mb-5 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform hover:scale-110 duration-500">
-              <span className="text-black text-3xl font-black italic">D</span>
+            <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.6)] animate-pulse">
+              <span className="text-black text-4xl font-black">D</span>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tighter uppercase">
-              SISTEMA <span className="text-emerald-500">INTELIGENTE</span>
+            <h1 className="text-3xl font-black text-white tracking-[0.1em] uppercase">
+              NET<span className="text-emerald-500 italic">WORK</span> IA
             </h1>
-            <p className="text-emerald-500/50 text-[10px] uppercase tracking-[0.3em] font-bold mt-2">
-              Neural Network Access
-            </p>
+            <div className="h-1 w-20 bg-emerald-500 mt-2 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
           </div>
 
           <Auth
@@ -117,15 +120,11 @@ export default function LoginPage() {
                   colors: {
                     brand: '#10b981',
                     brandButtonText: 'black',
-                    inputBackground: 'rgba(255,255,255,0.03)',
-                    inputBorder: 'rgba(255,255,255,0.08)',
+                    inputBackground: 'rgba(255,255,255,0.02)',
+                    inputBorder: 'rgba(16,185,129,0.2)',
                     inputText: 'white',
-                    inputPlaceholder: '#4b5563'
                   },
-                  radii: {
-                    borderRadiusButton: '14px',
-                    inputBorderRadius: '14px',
-                  }
+                  radii: { borderRadiusButton: '16px', inputBorderRadius: '16px' }
                 },
               },
             }}
@@ -134,16 +133,9 @@ export default function LoginPage() {
             redirectTo={`${origin}/dashboard`}
           />
         </div>
-        
-        <div className="flex flex-col items-center mt-8 gap-1">
-          <p className="text-zinc-600 text-[9px] uppercase tracking-[0.4em] font-bold">
-            Protocolo de Segurança Ativo
-          </p>
-          <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
-          <p className="text-zinc-800 text-[8px] mt-2 font-mono">
-            v2.0.48-STABLE // DINIZ DEV
-          </p>
-        </div>
+        <p className="text-center text-emerald-500/40 text-[9px] mt-8 uppercase tracking-[0.5em] font-bold animate-pulse">
+          Sincronizando com a Matrix...
+        </p>
       </div>
     </main>
   );
