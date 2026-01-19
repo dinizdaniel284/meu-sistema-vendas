@@ -25,9 +25,11 @@ export default function LoginPage() {
       setInit(true);
     });
 
-    setOrigin(window.location.origin);
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
 
-    // Escutador para redirecionar automático ao logar
+    // ESCUTADOR DE SESSÃO: Redireciona automático ao logar
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         router.push('/dashboard');
@@ -37,7 +39,7 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  // Configuração da Rede Neural (Visual)
+  // Configuração da Rede Neural
   const particlesOptions = useMemo(() => ({
     background: { color: { value: "#050505" } },
     fpsLimit: 120,
@@ -48,6 +50,7 @@ export default function LoginPage() {
       },
       modes: {
         grab: { distance: 200, links: { opacity: 0.8 } },
+        push: { quantity: 4 },
       },
     },
     particles: {
@@ -59,17 +62,28 @@ export default function LoginPage() {
         opacity: 0.4,
         width: 1,
       },
-      move: { enable: true, speed: 1.5 },
+      move: {
+        enable: true,
+        speed: 1.5,
+        direction: "none",
+        outModes: { default: "bounce" },
+      },
       number: { density: { enable: true, area: 800 }, value: 100 },
       opacity: { value: 0.5 },
+      shape: { type: "circle" },
       size: { value: { min: 1, max: 3 } },
     },
+    detectRetina: true,
   }), []);
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#050505]">
       {init && (
-        <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />
+        <Particles
+          id="tsparticles"
+          options={particlesOptions}
+          className="absolute inset-0 z-0"
+        />
       )}
 
       <div className="relative z-10 w-full max-w-[400px] p-4">
@@ -78,7 +92,10 @@ export default function LoginPage() {
             <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20">
               <span className="text-black text-2xl font-black">S</span>
             </div>
-            <h1 className="text-2xl font-bold text-white">SISTEMA <span className="text-emerald-500">IA</span></h1>
+            <h1 className="text-2xl font-bold text-white tracking-tighter">
+              SISTEMA <span className="text-emerald-500">IA</span>
+            </h1>
+            <p className="text-zinc-500 text-sm mt-1">Conecte-se à rede de lucros</p>
           </div>
 
           <Auth
@@ -91,9 +108,13 @@ export default function LoginPage() {
                     brand: '#10b981',
                     brandButtonText: 'black',
                     inputBackground: 'rgba(255,255,255,0.05)',
+                    inputBorder: 'rgba(255,255,255,0.1)',
                     inputText: 'white',
                   },
-                  radii: { borderRadiusButton: '12px', inputBorderRadius: '12px' }
+                  radii: {
+                    borderRadiusButton: '12px',
+                    inputBorderRadius: '12px',
+                  }
                 },
               },
             }}
@@ -102,6 +123,9 @@ export default function LoginPage() {
             redirectTo={`${origin}/dashboard`}
           />
         </div>
+        <p className="text-center text-zinc-700 text-[10px] mt-6 uppercase tracking-widest font-medium">
+          © 2026 DINIZ DEV - IA STRATEGY
+        </p>
       </div>
     </main>
   );
