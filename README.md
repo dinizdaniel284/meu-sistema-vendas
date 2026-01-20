@@ -1,4 +1,8 @@
 # 🚀 Sistema de Vendas IA - Marketing Estratégico
+<p align="center">
+  <a href="README.md">🇧🇷 Português</a> | <a href="README_en.md">🇺🇸 English</a>
+</p>
+
 
 https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993
 
