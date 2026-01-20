@@ -1,6 +1,6 @@
 # 🚀 Sistema de Vendas IA - Marketing Estratégico
 
-![Banner](https://media.giphy.com/media/26gJAeYiK2FecDCbK/giphy.gif)
+https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993
 
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://meu-sistema-vendas.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-blue?style=for-the-badge&logo=next.js)](https://nextjs.org/)
