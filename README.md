@@ -1,8 +1,6 @@
 # 🚀 Sistema de Vendas IA - Marketing Estratégico
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993" width="100%" />
-</p>
+https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993
 
 <p align="center">
   <img src="https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel" />
@@ -14,19 +12,6 @@
 
 ---
 
-## 🌟 Sobre o Projeto
-
-O **Sistema de Vendas IA** é uma plataforma **inteligente e instantânea** que transforma qualquer nicho de mercado em estratégias de vendas **prontas para ação**.  
-
-Com apenas alguns cliques, a **IA Gemini 1.5 Flash** (via Google Generative AI) gera:
-
-* **Estratégias matadoras** de vendas baseadas em psicologia de consumo.
-* **Legendas prontas** para Instagram, WhatsApp e redes sociais.
-* **Dicas de fechamento** que aumentam drasticamente a conversão.
-
-> Tudo isso com **Dark Mode, UI moderna e UX focada em conversão**. 🚀
-
----
 
 ## 🛠️ Tecnologias de Elite
 
