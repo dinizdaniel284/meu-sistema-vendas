@@ -1,12 +1,16 @@
 # 🚀 Sistema de Vendas IA - Marketing Estratégico
 
-https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993" width="100%" />
+</p>
 
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://meu-sistema-vendas.vercel.app/)
-[![Next.js](https://img.shields.io/badge/Next.js-15-blue?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.3-blue?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-DB-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-AI-orange?style=for-the-badge&logo=google-gemini)](https://aistudio.google.com/)
+<p align="center">
+  <img src="https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel" />
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/TailwindCSS-3.3-38B2AC?style=for-the-badge&logo=tailwind-css" />
+  <img src="https://img.shields.io/badge/Supabase-DB-3ECF8E?style=for-the-badge&logo=supabase" />
+  <img src="https://img.shields.io/badge/Google_Gemini-AI-8E75E9?style=for-the-badge&logo=google-gemini" />
+</p>
 
 ---
 
@@ -14,80 +18,59 @@ https://github.com/user-attachments/assets/6952ab9d-bf76-4515-9487-13852a75b993
 
 O **Sistema de Vendas IA** é uma plataforma **inteligente e instantânea** que transforma qualquer nicho de mercado em estratégias de vendas **prontas para ação**.  
 
-Com apenas alguns cliques, a **IA Gemini 2.5 Flash** gera:
+Com apenas alguns cliques, a **IA Gemini 1.5 Flash** (via Google Generative AI) gera:
 
-- Estratégias matadoras de vendas  
-- Legendas prontas para Instagram, WhatsApp e redes sociais  
-- Dicas secretas de fechamento que aumentam conversão  
+* **Estratégias matadoras** de vendas baseadas em psicologia de consumo.
+* **Legendas prontas** para Instagram, WhatsApp e redes sociais.
+* **Dicas de fechamento** que aumentam drasticamente a conversão.
 
-> Tudo isso com **Dark Mode, UI moderna e UX focada em conversão**.
-
-![Exemplo de Resultado](https://media.giphy.com/media/3o7abB06u9bNzA8lu8/giphy.gif)
+> Tudo isso com **Dark Mode, UI moderna e UX focada em conversão**. 🚀
 
 ---
 
 ## 🛠️ Tecnologias de Elite
 
-| Camada        | Tecnologia                   | Função |
-|---------------|-----------------------------|--------|
-| Frontend      | Next.js 15 (App Router)     | SPA moderna, SSR e SEO-friendly |
-| UI / CSS      | Tailwind CSS                | Dark Mode, gradientes e animações |
-| Backend/API   | Next.js API Routes          | Comunicação com Supabase e Google AI |
-| IA            | Google Generative AI        | Geração de estratégias personalizadas |
-| Banco de Dados| Supabase (PostgreSQL)       | Captura de leads e histórico de usuários |
-| Hospedagem    | Vercel (Edge)               | Deploy rápido com SSL e baixa latência |
+| Camada         | Tecnologia                   | Função |
+|----------------|------------------------------|--------|
+| **Frontend** | Next.js 15 (App Router)      | Interface moderna e rápida |
+| **UI / CSS** | Tailwind CSS                 | Design Dark Mode e gradientes |
+| **IA Engine** | Google Generative AI         | Cérebro do sistema (Gemini) |
+| **Banco Dados**| Supabase (PostgreSQL)        | Captura de leads e histórico |
+| **Hospedagem** | Vercel                       | Performance e estabilidade |
 
 ---
 
 ## ⚡ Funcionalidades Incríveis
 
-- [x] **Captura de Leads:** Salva e organiza automaticamente.  
-- [x] **IA Engine:** Estratégias únicas por nicho.  
-- [x] **Interface Premium:** Dark Mode com animações e gradientes.  
+- [x] **Captura de Leads:** Salva e organiza automaticamente no banco.  
+- [x] **IA Engine:** Gera estratégias únicas para qualquer nicho.  
+- [x] **Interface Premium:** Design minimalista com animações.  
 - [x] **Botão “Gerar Página”:** Preparado para mini-sites automáticos.  
-- [x] **Escalável:** Arquitetura modular para crescer com facilidade.  
+- [x] **Escalável:** Arquitetura limpa para fácil manutenção.  
 
 ---
 
 ## 🎨 Estrutura do Projeto
-meu-sistema-vendas/ │ ├─ app/ │  ├─ api/leads/route.ts       # Backend IA + Supabase │  ├─ page.tsx                 # Frontend principal │  └─ layout.tsx               # Layout global e UI │ ├─ public/                     # Assets, ícones, imagens ├─ styles/                     # Tailwind customizado ├─ .env                        # Variáveis de ambiente (não versionar) ├─ next.config.ts               # Configurações Next.js ├─ package.json                 # Dependências e scripts └─ README.md
+```text
+meu-sistema-vendas/
+├── app/
+│   ├── api/leads/route.ts   # Backend IA + Supabase
+│   ├── page.tsx             # Frontend principal
+│   └── layout.tsx           # Layout global e UI
+├── public/                  # Assets, ícones e imagens
+├── styles/                  # Tailwind customizado
+└── README.md
+Documentação
 
----
-
-## 🚀 Como rodar localmente
-
-1. Clone o repositório:  
-```bash
-git clone https://github.com/dinizdaniel284/meu-sistema-vendas.git
-cd meu-sistema-vendas
-
-Instale as dependências:
-
-Bash
-npm install
-# ou
-yarn install
-Configure o .env.local:
-
-NEXT_PUBLIC_SUPABASE_URL=seu_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key
-GOOGLE_GENERATIVE_AI_API_KEY=sua_api_key
-Rode o projeto:
-
-Bash
-npm run dev
-# ou
-yarn dev
-Abra no navegador: http://localhost:3000
-🌐 Deploy Online
-Deploy automático com Vercel: meu-sistema-vendas.vercel.app
-�
-🔮 Roadmap / Futuras Funcionalidades
-Mini-sites gerados automaticamente para cada usuário
-Área VIP com estratégias avançadas
-Link de Bio personalizado + WhatsApp integrado
-Dashboard de métricas e analytics em tempo real
-Integração com gateways de pagamento
-📞 Contato / Conexão
-Daniel Diniz – Desenvolvedor Full Stack e Criador do Sistema
-LinkedIn | GitHub
+🚀 Como rodar localmente
+Clone o repositório: git clone https://github.com/dinizdaniel284/meu-sistema-vendas.git
+Instale as dependências: npm install
+Configure o .env.local: Adicione suas chaves do Supabase e Google Gemini.
+Inicie o servidor: npm run dev
+🔮 Roadmap / Futuro
+[ ] Mini-sites gerados automaticamente para cada usuário.
+[ ] Área VIP com estratégias avançadas.
+[ ] Dashboard de métricas e analytics em tempo real.
+[ ] Integração com gateways de pagamento.
+👨‍💻 Conexão
+Daniel Diniz – Desenvolvedor Full Stack e Estrategista de Vendas
