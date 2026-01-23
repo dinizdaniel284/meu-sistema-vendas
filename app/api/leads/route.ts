@@ -17,10 +17,8 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // 🔹 MODELO ATUALIZADO (Flash 2.0 é o padrão estável e ultra rápido para 2026)
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash" 
-    });
+    // Volte para este que é o "tanque de guerra" da cota grátis
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
       Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.

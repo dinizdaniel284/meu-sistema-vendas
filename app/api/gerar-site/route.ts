@@ -14,8 +14,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { produto, whatsapp, userId } = body;
 
-    // 1. IA gera o conteúdo rico do site
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // 1. VOLTANDO PARA O MODELO ESTÁVEL (1.5-flash)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const prompt = `
       Atue como um Copywriter Senior focado em vendas. 
@@ -32,7 +32,10 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    const aiData = JSON.parse(responseText.replace(/```json|```/g, ""));
+    
+    // Limpeza extra para garantir que o JSON seja lido corretamente
+    const jsonCleaned = responseText.replace(/```json|```/g, "").trim();
+    const aiData = JSON.parse(jsonCleaned);
 
     // 2. Gerar a imagem baseada no nicho
     const tagBusca = encodeURIComponent(produto?.toLowerCase() || 'business');
@@ -70,6 +73,9 @@ export async function POST(req: Request) {
 
   } catch (err) {
     console.error("Erro na API:", err);
-    return NextResponse.json({ error: 'Erro ao processar conteúdo com IA' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'IA em alta demanda. Tente novamente em alguns segundos.' }, 
+      { status: 500 }
+    );
   }
 }
