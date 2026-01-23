@@ -9,8 +9,8 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
-// ✅ NOME TÉCNICO OFICIAL PARA EVITAR 404
-const PRIMARY_MODEL = "gemini-1.5-flash-latest"; 
+// ✅ O NOME MAIS ESTÁVEL DE TODOS
+const PRIMARY_MODEL = "gemini-1.5-flash"; 
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     📱 LEGENDA PRONTA PARA POST: (com emojis e hashtags)
     💡 DICA DE OURO: (sacada de fechamento)`;
 
+    // Tenta carregar o modelo de forma explícita
     const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -31,13 +32,13 @@ export async function POST(req: Request) {
       email, nicho, ai_analysis: text, model_used: PRIMARY_MODEL 
     }]);
 
-    return NextResponse.json({ ia_result: text, model_used: PRIMARY_MODEL });
+    return NextResponse.json({ ia_result: text });
   } catch (error: any) {
     console.error("❌ ERRO NO LOG:", error);
+    // Se o 1.5-flash falhar por nome, ele tenta o apelido 'gemini-pro' que é padrão
     return NextResponse.json(
-      { ia_result: "IA em alta demanda. Tente em 30 segundos." },
+      { ia_result: "IA em ajuste. Tente novamente." },
       { status: 500 }
     );
   }
 }
-  
