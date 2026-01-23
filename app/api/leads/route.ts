@@ -11,8 +11,8 @@ const genAI = new GoogleGenerativeAI(
   process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 );
 
-// ✅ ÚNICO MODELO 100% COMPATÍVEL NA v1beta HOJE
-const MODEL_NAME = "models/gemini-1.5-pro";
+// ✅ ÚNICO MODELO LIBERADO NA TUA CHAVE
+const MODEL_NAME = "models/gemini-1.0-pro";
 
 export async function POST(req: Request) {
   try {
