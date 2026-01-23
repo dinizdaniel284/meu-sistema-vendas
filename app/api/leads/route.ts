@@ -7,94 +7,47 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY!
-);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
-// ✅ MODELOS REAIS SUPORTADOS
-const PRIMARY_MODEL = "gemini-1.5-pro";
-const FALLBACK_MODEL = "gemini-1.5-flash";
+// ✅ NOMES PADRONIZADOS PARA EVITAR 404 E 429
+const PRIMARY_MODEL = "gemini-1.5-flash"; 
+const FALLBACK_MODEL = "gemini-1.5-flash-8b";
 
 export async function POST(req: Request) {
   try {
     const { email, nicho } = await req.json();
-
-    if (!nicho) {
-      throw new Error("O campo nicho não foi enviado.");
-    }
+    if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
     let text = "";
     let modelUsed = PRIMARY_MODEL;
 
-    const prompt = `
-Atue como um Especialista em Marketing Digital focado em conversão.
-O usuário vende: ${nicho}.
-
-Gere um plano de ação rápido seguindo EXATAMENTE este formato:
-
-🎯 ESTRATÉGIA MATADORA:
-(Uma estratégia prática de 2 frases com gatilhos mentais para aplicar agora)
-
-📱 LEGENDA PRONTA PARA POST:
-(Uma legenda persuasiva com emojis e 3 hashtags para Instagram/WhatsApp)
-
-💡 DICA DE OURO:
-(Uma sacada extra de fechamento de vendas que quase ninguém usa)
-
-Regras:
-- Linguagem clara, profissional e persuasiva
-- Nada genérico
-- Responder em Português do Brasil
-    `;
+    const prompt = `Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
+    Gere um plano de ação seguindo este formato:
+    🎯 ESTRATÉGIA MATADORA: (2 frases)
+    📱 LEGENDA PRONTA PARA POST: (com emojis e hashtags)
+    💡 DICA DE OURO: (sacada de fechamento)`;
 
     try {
-      // 🔹 Tentativa com modelo PRO
       const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
       const result = await model.generateContent(prompt);
       text = result.response.text();
     } catch (primaryError) {
-      console.warn("⚠️ Falha no modelo PRO. Usando fallback FLASH...", primaryError);
-
-      // 🔹 Fallback automático
-      const fallbackModel = genAI.getGenerativeModel({
-        model: FALLBACK_MODEL,
-      });
-
+      console.warn("⚠️ Usando fallback...", primaryError);
+      const fallbackModel = genAI.getGenerativeModel({ model: FALLBACK_MODEL });
       const fallbackResult = await fallbackModel.generateContent(prompt);
       text = fallbackResult.response.text();
       modelUsed = FALLBACK_MODEL;
     }
 
-    // 🔹 Salvar lead no Supabase
-    const { error } = await supabase
-      .from("leads")
-      .insert([
-        {
-          email,
-          nicho,
-          ai_analysis: text,
-          model_used: modelUsed,
-        },
-      ]);
+    await supabase.from("leads").insert([{ 
+      email, nicho, ai_analysis: text, model_used: modelUsed 
+    }]);
 
-    if (error) {
-      console.error("Erro Supabase:", error.message);
-    }
-
-    console.log("✅ IA respondeu com o modelo:", modelUsed);
-
-    return NextResponse.json({
-      ia_result: text,
-      model_used: modelUsed,
-    });
-
+    return NextResponse.json({ ia_result: text, model_used: modelUsed });
   } catch (error: any) {
     console.error("❌ ERRO NO LOG:", error);
-
     return NextResponse.json(
-      {
-        ia_result: "IA em alta demanda. Aguarde 30 segundos e tente novamente.",
-      },
+      { ia_result: "IA em alta demanda. Tente em 30 segundos." },
       { status: 500 }
     );
   }
