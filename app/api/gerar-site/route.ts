@@ -44,4 +44,4 @@ export async function POST(req: Request) {
     console.error("Erro na API:", error);
     return NextResponse.json({ error: 'Erro ao salvar site' }, { status: 500 });
   }
-}
+} 
