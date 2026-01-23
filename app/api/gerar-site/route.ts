@@ -1,29 +1,53 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { produto, whatsapp, userId } = body;
 
-    const tagBusca = encodeURIComponent(produto?.toLowerCase() || 'negocio');
-    const urlImagemIA = `https://image.pollinations.ai/prompt/commercial_photography_of_${tagBusca}_high_quality?width=1080&height=720&nologo=true`;
+    // 1. IA gera o conteúdo rico do site
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    
+    const prompt = `
+      Atue como um Copywriter Senior focado em vendas. 
+      O usuário está criando um site para: ${produto}.
+      Gere um JSON estrito (sem blocos de código markdown) com as seguintes chaves em português:
+      {
+        "headline": "Uma headline matadora",
+        "subheadline": "Um parágrafo explicando como isso agrega valor e transforma a vida do cliente",
+        "guia_completo": "Um texto de 3 parágrafos detalhando o produto/serviço, como funciona e por que é a melhor escolha",
+        "beneficios": ["beneficio 1", "beneficio 2", "beneficio 3"],
+        "sobre_nos": "Um texto institucional curto e confiável"
+      }
+    `;
 
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const aiData = JSON.parse(responseText.replace(/```json|```/g, ""));
+
+    // 2. Gerar a imagem baseada no nicho
+    const tagBusca = encodeURIComponent(produto?.toLowerCase() || 'business');
+    const urlImagemIA = `https://image.pollinations.ai/prompt/commercial_photography_of_${tagBusca}_lifestyle_high_quality?width=1080&height=720&nologo=true`;
+
+    // 3. Montar o Kit de Vendas Robusto
     const kitVendas = {
-      headline: `O melhor em ${produto}!`,
-      copy: `Qualidade garantida para você.`,
+      ...aiData,
       imagem: urlImagemIA,
       whatsapp: whatsapp
     };
 
     const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(7)}`;
 
-    // Nome da tabela ajustado para 'sites' (sem o ponto)
+    // 4. Salvar na tabela 'sites'
     const { error } = await supabase
       .from('sites') 
       .insert([
@@ -45,6 +69,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err) {
-    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+    console.error("Erro na API:", err);
+    return NextResponse.json({ error: 'Erro ao processar conteúdo com IA' }, { status: 500 });
   }
 }
