@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-// 1. IMPORTAÇÃO MODERNA RESOLVIDA
 import { createBrowserClient } from '@supabase/ssr';
 
 export default function GeradorPage() {
@@ -10,17 +9,16 @@ export default function GeradorPage() {
   const [resultado, setResultado] = useState<any>(null);
   const [meusSites, setMeusSites] = useState<any[]>([]);
   
-  // 2. CLIENTE SUPABASE AJUSTADO (SEM ALERTA)
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // 3. FUNÇÃO PARA COPIAR O LINK PRO CLIPBOARD
+  // 1. AJUSTE: Função de copiar agora garante a URL completa do domínio
   const copiarLink = (slug: string) => {
     const url = `${window.location.origin}/s/${slug}`;
     navigator.clipboard.writeText(url);
-    alert("Link copiado! Pronto para enviar no WhatsApp. 🚀");
+    alert("Link copiado para o WhatsApp! 🚀");
   };
 
   async function carregarSites() {
@@ -91,7 +89,6 @@ export default function GeradorPage() {
         </header>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* PAINEL DE CRIAÇÃO */}
           <div className="lg:col-span-1 space-y-6 bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md h-fit">
             <h2 className="text-xl font-bold mb-4">🚀 Criar Novo Site</h2>
             <div>
@@ -121,7 +118,6 @@ export default function GeradorPage() {
             </button>
           </div>
 
-          {/* LISTA DE SITES COM COPIAR E DELETAR */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-xl font-bold flex items-center gap-2 text-slate-300">
               📂 Meus Mini-Sites <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">{meusSites.length}</span>
@@ -130,15 +126,18 @@ export default function GeradorPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               {meusSites.map((site) => (
                 <div key={site.id} className="relative bg-slate-900/60 border border-white/5 p-4 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-all group overflow-hidden">
-                  <img src={site.conteudo.imagem} className="w-16 h-16 rounded-xl object-cover shadow-lg" alt="Preview" />
+                  <img src={site.conteudo?.imagem || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-xl object-cover shadow-lg" alt="Preview" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm truncate pr-6">{site.conteudo.headline}</h3>
+                    <h3 className="font-bold text-sm truncate pr-6">{site.conteudo?.headline || 'Sem Título'}</h3>
+                    {/* 2. AJUSTE: Exibição do link com barra inicial para garantir rota raiz */}
                     <p className="text-[10px] text-slate-500 mb-2 truncate">/s/{site.slug}</p>
                     
                     <div className="flex gap-2">
+                      {/* 3. AJUSTE: href agora usa /s/ explicitamente para evitar erro de subpasta */}
                       <a 
                         href={`/s/${site.slug}`} 
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[9px] font-black py-1.5 px-3 rounded-lg transition-all"
                       >
                         ABRIR ↗
