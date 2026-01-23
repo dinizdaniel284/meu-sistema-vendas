@@ -23,9 +23,9 @@ export async function POST(req: Request) {
 
     const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(7)}`;
 
-    // Atenção ao nome da tabela: 'sites.' (conforme seu print)
+    // Nome da tabela ajustado para 'sites' (sem o ponto)
     const { error } = await supabase
-      .from('sites.') 
+      .from('sites') 
       .insert([
         { 
           slug: slugUnico, 
