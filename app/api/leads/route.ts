@@ -9,9 +9,9 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
-// ✅ NOMES PADRONIZADOS PARA EVITAR 404 E 429
+// ✅ NOMES SIMPLIFICADOS (O 8b estava dando 404)
 const PRIMARY_MODEL = "gemini-1.5-flash"; 
-const FALLBACK_MODEL = "gemini-1.5-flash-8b";
+const FALLBACK_MODEL = "gemini-1.5-flash"; // Usando o mesmo como segurança
 
 export async function POST(req: Request) {
   try {
@@ -32,11 +32,8 @@ export async function POST(req: Request) {
       const result = await model.generateContent(prompt);
       text = result.response.text();
     } catch (primaryError) {
-      console.warn("⚠️ Usando fallback...", primaryError);
-      const fallbackModel = genAI.getGenerativeModel({ model: FALLBACK_MODEL });
-      const fallbackResult = await fallbackModel.generateContent(prompt);
-      text = fallbackResult.response.text();
-      modelUsed = FALLBACK_MODEL;
+      console.warn("⚠️ Falha na IA:", primaryError);
+      throw primaryError; // Repassa para o catch principal
     }
 
     await supabase.from("leads").insert([{ 
