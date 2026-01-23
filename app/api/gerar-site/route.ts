@@ -7,11 +7,14 @@ export async function POST(req: Request) {
     // Limpamos o nome do produto para a busca de imagem não bugar
     const tagBusca = encodeURIComponent(produto.toLowerCase());
 
+    // MOTOR DE IMAGEM IA (Pollinations): Gera uma imagem única baseada no texto
+    // Diferente do Unsplash, isso aqui REALMENTE cria uma imagem nova.
+    const urlImagemIA = `https://image.pollinations.ai/prompt/professional_commercial_photography_of_${tagBusca}_extremely_detailed_high_quality_advertising_style?width=1080&height=720&nologo=true`;
+
     const kitVendas = {
       headline: `A Solução Definitiva em ${produto} que Você Procurava!`,
       copy: `Cansado de procurar por ${produto} e não encontrar qualidade real? Nossa metodologia exclusiva garante os melhores resultados do mercado. Junte-se a centenas de clientes satisfeitos e transforme sua realidade hoje mesmo com o melhor custo-benefício.`,
       
-      // HTML estruturado para Tailwind CSS (Preview Full)
       html: `
         <div class="space-y-8">
           <div class="grid md:grid-cols-2 gap-6 text-left">
@@ -36,13 +39,8 @@ export async function POST(req: Request) {
         </div>
       `,
       
-      // NOVO MOTOR DE IMAGEM: Unsplash com tags de alta qualidade
-      // Adicionamos "product, gourmet" para garantir que venha algo profissional
-      imagem: `https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1200&auto=format&fit=crop` // Fallback caso queira uma fixa de doce
+      imagem: urlImagemIA // Aqui entra a imagem gerada por IA
     };
-
-    // Ajuste final na URL da imagem para ser ultra dinâmica e precisa:
-    kitVendas.imagem = `https://source.unsplash.com/1200x800/?${tagBusca},product,professional,food`;
 
     return NextResponse.json(kitVendas);
   } catch (error) {
