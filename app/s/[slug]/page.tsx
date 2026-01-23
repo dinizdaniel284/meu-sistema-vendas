@@ -6,23 +6,27 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default async function PageSite({ params }: { params: { slug: string } }) {
-  // 1. Busca os dados do site no Supabase usando o slug da URL
+// Adicionamos 'async' nos params para garantir compatibilidade com versões novas do Next
+export default async function PageSite({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+
+  // 1. Busca os dados usando o nome da tabela SEM O PONTO
   const { data: site, error } = await supabase
-    .from('sites.') // Nome da sua tabela
+    .from('sites') // AJUSTADO: Removido o ponto aqui
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
+  // Se der erro ou não achar o slug, manda pro 404
   if (error || !site) {
-    notFound(); // Se não achar o site, mostra erro 404
+    console.error("Erro ao buscar site:", error);
+    notFound();
   }
 
   const { headline, copy, imagem, whatsapp } = site.conteudo;
 
   return (
     <main className="min-h-screen bg-[#020617] text-white font-sans">
-      {/* Banner da IA */}
       <div className="w-full h-64 md:h-96 relative">
         <img 
           src={imagem} 
