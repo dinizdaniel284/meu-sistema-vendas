@@ -9,9 +9,8 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
-// ✅ MODELO FLASH PARA AGUENTAR O FLUXO DE CRIAÇÃO
+// ✅ PADRONIZADO PARA O FLASH (MAIS COTA)
 const PRIMARY_MODEL = "gemini-1.5-flash";
-const FALLBACK_MODEL = "gemini-1.5-flash-001";
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +18,6 @@ export async function POST(req: Request) {
     const { produto, whatsapp, userId } = body;
 
     let responseText = "";
-    let modelUsed = PRIMARY_MODEL;
 
     const prompt = `Atue como um Copywriter Sênior. Produto: ${produto}.
     Retorne APENAS um JSON:
@@ -31,17 +29,9 @@ export async function POST(req: Request) {
       "sobre_nos": "texto institucional"
     }`;
 
-    try {
-      const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
-      const result = await model.generateContent(prompt);
-      responseText = result.response.text();
-    } catch (err) {
-      console.warn("⚠️ Usando fallback no site...", err);
-      const fallback = genAI.getGenerativeModel({ model: FALLBACK_MODEL });
-      const res = await fallback.generateContent(prompt);
-      responseText = res.response.text();
-      modelUsed = FALLBACK_MODEL;
-    }
+    const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
+    const result = await model.generateContent(prompt);
+    responseText = result.response.text();
 
     const jsonCleaned = responseText.replace(/```json|```/g, "").trim();
     const aiData = JSON.parse(jsonCleaned);
@@ -55,14 +45,14 @@ export async function POST(req: Request) {
       slug: slugUnico,
       conteudo: { ...aiData, imagem: urlImagemIA, whatsapp: whatsapp || null },
       user_id: userId || null,
-      model_used: modelUsed
+      model_used: PRIMARY_MODEL
     }]);
 
     if (error) throw error;
 
-    return NextResponse.json({ url: `/s/${slugUnico}`, model_used: modelUsed });
+    return NextResponse.json({ url: `/s/${slugUnico}`, model_used: PRIMARY_MODEL });
   } catch (err) {
     console.error("❌ Erro /api/gerar-site:", err);
     return NextResponse.json({ error: 'Erro ao gerar site' }, { status: 500 });
   }
-      }
+}
