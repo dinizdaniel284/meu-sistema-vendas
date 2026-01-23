@@ -1,20 +1,42 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+// 1. IMPORTAÇÃO MODERNA (Substitui a que estava em alerta)
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function GeradorPage() {
   const [produto, setProduto] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [gerando, setGerando] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
+  const [meusSites, setMeusSites] = useState<any[]>([]);
   
-  // ESTADO DE CONTROLE PRO (Mude para true para testar você mesmo)
-  const [isPro, setIsPro] = useState(false); 
+  // 2. LINHA 11 AJUSTADA: Agora usando o createBrowserClient
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  async function carregarSites() {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error("Erro ao buscar sites:", error);
+    } else {
+      setMeusSites(data || []);
+    }
+  }
+
+  useEffect(() => {
+    carregarSites();
+  }, []);
 
   async function gerarKitVendas() {
     if (!produto || !whatsapp) return alert("Preencha o produto e o zap, irmão!");
     
     setGerando(true);
-    
     try {
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
@@ -26,110 +48,101 @@ export default function GeradorPage() {
 
       if (response.ok) {
         setResultado(data);
-        localStorage.setItem('last_generated_site', JSON.stringify(data));
+        carregarSites(); 
       } else {
         alert("Erro ao gerar. Tenta de novo!");
       }
     } catch (err) {
-      alert("Erro de conexão com a IA.");
+      alert("Erro de conexão.");
     } finally {
       setGerando(false);
     }
   }
 
-  // FUNÇÃO QUE CONTROLA O ACESSO AO SITE FULL
-  const handleVisualizarClick = () => {
-    if (!isPro) {
-      alert("💎 RECURSO EXCLUSIVO PRO! \n\nAssine o plano premium para visualizar, baixar e publicar seus mini-sites ilimitados.");
-      // Aqui você pode redirecionar para uma página de vendas no futuro:
-      // window.location.href = '/checkout';
-      return;
+  async function deletarSite(id: string) {
+    if (!confirm("Tem certeza que deseja apagar este site?")) return;
+
+    const { error } = await supabase
+      .from('sites')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      carregarSites();
+      if (resultado?.id === id) setResultado(null);
     }
-    window.open('/dashboard/visualizar', '_blank');
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8 font-sans">
+      <div className="max-w-6xl mx-auto">
         <header className="mb-12 text-center">
-          <h1 className="text-4xl font-black mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-emerald-400 bg-clip-text text-transparent italic tracking-tighter">
-            CONSTRUTOR INSANO IA
+          <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent italic uppercase tracking-tighter">
+            DINIZ DEV IA
           </h1>
-          <p className="text-slate-400 font-medium italic">Transforme ideias em páginas de vendas lucrativas.</p>
+          <p className="text-slate-500 text-[10px] tracking-[0.3em] uppercase font-bold">Dashboard Profissional</p>
         </header>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* PAINEL DE ENTRADA (INPUTS) */}
-          <div className="space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md shadow-2xl">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-6 bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md h-fit">
+            <h2 className="text-xl font-bold mb-4">🚀 Criar Novo Site</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-2">O que você quer vender?</label>
+              <label className="block text-[10px] font-bold uppercase text-blue-400 mb-2">Produto</label>
               <input 
                 type="text" 
-                placeholder="Ex: Mentoria de Vendas"
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none transition-all text-sm text-white"
+                placeholder="Ex: Bolo de Pote Gourmet"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-sm text-white"
                 onChange={(e) => setProduto(e.target.value)}
               />
             </div>
-
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-2">WhatsApp (com DDD)</label>
+              <label className="block text-[10px] font-bold uppercase text-blue-400 mb-2">WhatsApp</label>
               <input 
                 type="text" 
                 placeholder="Ex: 11999999999"
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none transition-all text-sm text-white"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-sm text-white"
                 onChange={(e) => setWhatsapp(e.target.value)}
               />
             </div>
-
             <button 
               onClick={gerarKitVendas}
               disabled={gerando}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black uppercase text-xs transition-all disabled:opacity-50"
             >
-              {gerando ? '🧠 PROCESSANDO MODELO IA...' : '🚀 GERAR MEU KIT DE VENDAS'}
+              {gerando ? '🧠 PROCESSANDO...' : 'GERAR SITE AGORA'}
             </button>
           </div>
 
-          {/* PAINEL DE RESULTADO (PREVIEW) */}
-          <div className="bg-slate-900/40 border-2 border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
-            {!resultado ? (
-              <div className="opacity-20 animate-pulse text-center">
-                <div className="text-6xl mb-4">🧬</div>
-                <p className="text-[10px] font-mono tracking-[0.3em] uppercase">Aguardando Input...</p>
-              </div>
-            ) : (
-              <div className="w-full animate-fade-in space-y-4">
-                {/* Preview da Imagem */}
-                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
-                    <img src={resultado.imagem} alt="Preview IA" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
-                        <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Imagem Gerada ✓</span>
-                        <h4 className="text-sm font-bold text-white line-clamp-1">{resultado.headline}</h4>
-                    </div>
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-300">
+              📂 Meus Mini-Sites <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">{meusSites.length}</span>
+            </h2>
+            
+            <div className="grid sm:grid-cols-2 gap-4">
+              {meusSites.map((site) => (
+                <div key={site.id} className="relative bg-slate-900/60 border border-white/5 p-4 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-all group">
+                  <img src={site.conteudo.imagem} className="w-16 h-16 rounded-xl object-cover" alt="Preview" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm truncate pr-6">{site.conteudo.headline}</h3>
+                    <p className="text-[10px] text-slate-500 mb-2 truncate">/s/{site.slug}</p>
+                    <a 
+                      href={`/s/${site.slug}`} 
+                      target="_blank"
+                      className="inline-block bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[9px] font-bold py-1 px-3 rounded-lg transition-all"
+                    >
+                      ABRIR SITE ↗
+                    </a>
+                  </div>
+                  
+                  <button 
+                    onClick={() => deletarSite(site.id)}
+                    className="absolute top-2 right-2 p-1.5 text-slate-600 hover:text-red-500 transition-colors"
+                  >
+                    🗑️
+                  </button>
                 </div>
-
-                {/* Estrutura HTML */}
-                <div className="bg-black/60 p-4 rounded-xl text-left border border-white/5">
-                    <p className="text-[9px] text-blue-400 font-bold mb-2 uppercase tracking-widest">// ESTRUTURA GERADA:</p>
-                    <div className="text-[10px] text-slate-500 font-mono h-12 overflow-hidden italic">
-                        {resultado.html}
-                    </div>
-                </div>
-
-                {/* BOTÃO COM TRAVA DE PAGAMENTO */}
-                <button 
-                  onClick={handleVisualizarClick}
-                  className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl active:scale-95 ${
-                    !isPro 
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:brightness-110' 
-                    : 'bg-white text-black hover:bg-emerald-400'
-                  }`}
-                >
-                  {!isPro ? '💎 LIBERAR ACESSO PRO' : 'Visualizar Mini-Site Full 🚀'}
-                </button>
-                {!isPro && <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter">Recurso bloqueado para contas gratuitas</p>}
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>
