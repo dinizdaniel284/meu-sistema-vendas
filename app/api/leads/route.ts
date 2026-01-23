@@ -2,20 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// 🔹 Conexão Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// 🔹 Conexão Google Generative AI
 const genAI = new GoogleGenerativeAI(
   process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 );
 
-// 🔹 Modelos (qualidade + fallback)
-const PRIMARY_MODEL = "models/gemini-1.5-pro";        // mais qualidade
-const FALLBACK_MODEL = "models/gemini-1.5-flash-001"; // mais rápido / free
+// ✅ MODELOS REAIS SUPORTADOS
+const PRIMARY_MODEL = "gemini-1.5-pro";
+const FALLBACK_MODEL = "gemini-1.5-flash";
 
 export async function POST(req: Request) {
   try {
@@ -50,7 +48,7 @@ Regras:
     `;
 
     try {
-      // 🔹 Tentativa com modelo de mais qualidade
+      // 🔹 Tentativa com modelo PRO
       const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
       const result = await model.generateContent(prompt);
       text = result.response.text();
@@ -75,7 +73,7 @@ Regras:
           email,
           nicho,
           ai_analysis: text,
-          model_used: modelUsed, // opcional: cria essa coluna se quiser auditar
+          model_used: modelUsed,
         },
       ]);
 
