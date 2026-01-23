@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY!
-);
-
-// ✅ ÚNICO MODELO LIBERADO NA TUA CHAVE
-const MODEL_NAME = "models/gemini-1.0-pro";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
 export async function POST(req: Request) {
   try {
@@ -26,22 +23,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const prompt = `Gere um JSON estrito para o produto ${produto} com: 
-headline, 
-subheadline, 
-guia_completo, 
-beneficios (array), 
-sobre_nos.`;
+    const prompt = `
+Gere um JSON estrito para o produto "${produto}" com:
+headline,
+subheadline,
+guia_completo,
+beneficios (array),
+sobre_nos.
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+Responda SOMENTE com JSON válido, sem markdown.
+`;
 
-    const jsonCleaned = responseText
-      .replace(/```json|```/g, "")
-      .trim();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
 
-    const aiData = JSON.parse(jsonCleaned);
+    const responseText = completion.choices[0].message.content || "";
+
+    const aiData = JSON.parse(responseText);
 
     const tagBusca = encodeURIComponent(produto.toLowerCase());
     const urlImagemIA = `https://image.pollinations.ai/prompt/photography_${tagBusca}?width=1080&height=720`;
@@ -51,10 +52,10 @@ sobre_nos.`;
 
     await supabase.from('sites').insert([{
       slug: slugUnico,
-      conteudo: { 
-        ...aiData, 
-        imagem: urlImagemIA, 
-        whatsapp: whatsapp || null 
+      conteudo: {
+        ...aiData,
+        imagem: urlImagemIA,
+        whatsapp: whatsapp || null
       },
       user_id: userId || null
     }]);
