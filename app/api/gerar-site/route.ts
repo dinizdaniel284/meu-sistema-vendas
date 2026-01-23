@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração do Supabase (Ajuste se as variáveis forem diferentes)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -21,16 +20,14 @@ export async function POST(req: Request) {
       whatsapp: whatsapp
     };
 
-    // Geramos um slug único (ex: bolo-de-pote-12345)
     const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(7)}`;
 
-    // SALVANDO NO SUPABASE NA TABELA QUE VOCÊ CRIOU
     const { data, error } = await supabase
-      .from('sites.') // Nome da tabela exatamente como no print
+      .from('sites.') 
       .insert([
         { 
           slug: slugUnico, 
-          conteudo: kitVendas, // Salva o JSON com headline, copy e imagem
+          conteudo: kitVendas,
           user_id: userId 
         }
       ])
@@ -38,10 +35,9 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    // Retornamos os dados e a URL final para o usuário compartilhar
     return NextResponse.json({
       ...kitVendas,
-      url: `https://seu-dominio.com/s/${slugUnico}`
+      url: `/s/${slugUnico}`
     });
 
   } catch (error) {
