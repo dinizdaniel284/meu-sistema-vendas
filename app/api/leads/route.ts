@@ -9,8 +9,8 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
-// ✅ O NOME MAIS ESTÁVEL DE TODOS
-const PRIMARY_MODEL = "gemini-1.5-flash"; 
+// ✅ O NOME MAIS COMPATÍVEL COM VERSÕES BETA
+const MODEL_NAME = "gemini-pro"; 
 
 export async function POST(req: Request) {
   try {
@@ -18,27 +18,19 @@ export async function POST(req: Request) {
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
     const prompt = `Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
-    Gere um plano de ação rápido:
-    🎯 ESTRATÉGIA MATADORA: (2 frases)
-    📱 LEGENDA PRONTA PARA POST: (com emojis e hashtags)
-    💡 DICA DE OURO: (sacada de fechamento)`;
+    Gere uma estratégia rápida com: ESTRATÉGIA MATADORA, LEGENDA e DICA DE OURO.`;
 
-    // Tenta carregar o modelo de forma explícita
-    const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
     await supabase.from("leads").insert([{ 
-      email, nicho, ai_analysis: text, model_used: PRIMARY_MODEL 
+      email, nicho, ai_analysis: text, model_used: MODEL_NAME 
     }]);
 
     return NextResponse.json({ ia_result: text });
   } catch (error: any) {
     console.error("❌ ERRO NO LOG:", error);
-    // Se o 1.5-flash falhar por nome, ele tenta o apelido 'gemini-pro' que é padrão
-    return NextResponse.json(
-      { ia_result: "IA em ajuste. Tente novamente." },
-      { status: 500 }
-    );
+    return NextResponse.json({ ia_result: "Erro na IA. Tente novamente." }, { status: 500 });
   }
 }
