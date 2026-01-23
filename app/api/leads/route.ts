@@ -1,4 +1,3 @@
-// app/api/leads/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -18,12 +17,11 @@ export async function POST(req: Request) {
 
     if (!nicho) throw new Error("O campo nicho não foi enviado.");
 
-    // 🔹 Modelo válido e estável da Google
+    // 🔹 MODELO ATUALIZADO (Flash 2.0 é o padrão estável e ultra rápido para 2026)
     const model = genAI.getGenerativeModel({
-      model: "models/gemini-2.5-flash" // ✅ substituído o antigo gemini-1.5
+      model: "gemini-2.0-flash" 
     });
 
-    // 🔹 Prompt poderoso e bem estruturado
     const prompt = `
       Atue como um Especialista em Marketing Digital. O usuário vende: ${nicho}.
       Gere um plano de ação rápido seguindo EXATAMENTE este formato:
@@ -40,31 +38,30 @@ export async function POST(req: Request) {
       Responda em Português do Brasil, de forma clara e profissional.
     `;
 
-    // 🔹 Chamada correta do generateContent
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }]
-        }
-      ]
-    });
-
+    const result = await model.generateContent(prompt);
     const text = result.response.text();
 
     // 🔹 Salvar lead no Supabase
+    // IMPORTANTE: Verifique se a coluna 'ai_analysis' existe na tabela 'leads'
     const { error } = await supabase
       .from("leads")
-      .insert([{ email, nicho, ai_analysis: text }]);
+      .insert([{ 
+        email, 
+        nicho, 
+        ai_analysis: text 
+      }]);
 
-    if (error) throw error;
+    if (error) {
+       console.error("Erro Supabase:", error.message);
+       // Se der erro na coluna, ele ainda retorna o texto da IA para não frustrar o usuário
+    }
 
     return NextResponse.json({ ia_result: text });
 
   } catch (error: any) {
     console.error("ERRO NO LOG:", error);
     return NextResponse.json(
-      { ia_result: "IA em atualização rápida. Tente em 30 segundos." },
+      { ia_result: "IA em alta demanda. Aguarde 30 segundos e tente novamente." },
       { status: 500 }
     );
   }
