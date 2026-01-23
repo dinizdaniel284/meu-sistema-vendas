@@ -1,18 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY!
-);
-
-// ✅ ÚNICO MODELO LIBERADO NA TUA CHAVE
-const MODEL_NAME = "models/gemini-1.0-pro";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
 export async function POST(req: Request) {
   try {
@@ -25,22 +22,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const prompt = `Atue como um Especialista em Marketing Digital. 
+    const prompt = `
+Atue como um Especialista em Marketing Digital.
 O usuário vende: ${nicho}.
-Gere uma estratégia rápida com: 
-ESTRATÉGIA MATADORA, 
-LEGENDA 
-e DICA DE OURO.`;
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+Gere uma estratégia rápida com:
+ESTRATÉGIA MATADORA,
+LEGENDA,
+DICA DE OURO.
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
+
+    const text = completion.choices[0].message.content || "";
 
     await supabase.from("leads").insert([{ 
       email: email || null, 
       nicho, 
       ai_analysis: text, 
-      model_used: MODEL_NAME 
+      model_used: "gpt-4o-mini"
     }]);
 
     return NextResponse.json({ ia_result: text });
