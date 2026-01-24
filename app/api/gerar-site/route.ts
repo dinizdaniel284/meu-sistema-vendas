@@ -96,7 +96,7 @@ Regras:
       );
     }
 
-    // 🔥 AQUI É A CORREÇÃO DO BUG DO DASHBOARD
+    // 🔥 Correção do bug do dashboard
     return NextResponse.json({
       url: `/s/${slugUnico}`,
       ...conteudoFinal
@@ -109,4 +109,4 @@ Regras:
       { status: 500 }
     );
   }
-                  }
+  }
