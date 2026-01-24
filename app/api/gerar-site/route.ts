@@ -76,13 +76,15 @@ Regras:
       .toString(36)
       .substring(2, 8)}`;
 
+    const conteudoFinal = {
+      ...aiData,
+      imagem: urlImagemIA,
+      whatsapp: whatsapp || null
+    };
+
     const { error: insertError } = await supabase.from('sites').insert([{
       slug: slugUnico,
-      conteudo: {
-        ...aiData,
-        imagem: urlImagemIA,
-        whatsapp: whatsapp || null
-      },
+      conteudo: conteudoFinal,
       user_id: userId || null
     }]);
 
@@ -94,7 +96,11 @@ Regras:
       );
     }
 
-    return NextResponse.json({ url: `/s/${slugUnico}` });
+    // 🔥 AQUI É A CORREÇÃO DO BUG DO DASHBOARD
+    return NextResponse.json({
+      url: `/s/${slugUnico}`,
+      ...conteudoFinal
+    });
 
   } catch (err) {
     console.error("❌ Erro fatal:", err);
@@ -103,4 +109,4 @@ Regras:
       { status: 500 }
     );
   }
-}
+                  }
