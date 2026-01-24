@@ -35,13 +35,8 @@ Gere um JSON estrito para uma landing page de vendas do produto "${produto}" com
 }
 
 Regras:
-- Linguagem brasileira
-- Headline chamativa
-- Subheadline curta
-- Guia completo em parágrafos
-- Benefícios em bullet points
-- Sobre nós institucional
-- Responda SOMENTE com JSON válido, sem markdown
+- Linguagem brasileira persuasiva
+- Responda SOMENTE com JSON válido, sem markdown ou explicações
 `;
 
     const completion = await openai.chat.completions.create({
@@ -54,7 +49,9 @@ Regras:
 
     let aiData;
     try {
-      aiData = JSON.parse(responseText);
+      // Limpeza para garantir que apenas o JSON seja parseado
+      const cleanJson = responseText.replace(/```json|```/g, "").trim();
+      aiData = JSON.parse(cleanJson);
     } catch (e) {
       console.error("❌ JSON inválido da IA:", responseText);
       return NextResponse.json(
@@ -63,6 +60,7 @@ Regras:
       );
     }
 
+    // ✅ Melhoria na geração da Tag de busca para a imagem
     const tagBusca = produto
       .toLowerCase()
       .normalize("NFD")
@@ -70,22 +68,23 @@ Regras:
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    const urlImagemIA = `https://image.pollinations.ai/prompt/photography_${encodeURIComponent(tagBusca)}?width=1080&height=720`;
+    // ✅ URL da imagem garantida para aparecer no Dashboard
+    const urlImagemIA = `https://image.pollinations.ai/prompt/professional_photography_of_${encodeURIComponent(tagBusca)}_lifestyle_high_quality?width=1080&height=720&nologo=true`;
 
-    const slugUnico = `${tagBusca}-${Math.random()
-      .toString(36)
-      .substring(2, 8)}`;
+    const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(2, 8)}`;
 
     const conteudoFinal = {
       ...aiData,
-      imagem: urlImagemIA,
+      imagem: urlImagemIA, // Injetando a imagem aqui para o Dashboard ler
       whatsapp: whatsapp || null
     };
 
+    // ✅ Salvando com o campo 'model_used' para seu controle
     const { error: insertError } = await supabase.from('sites').insert([{
       slug: slugUnico,
       conteudo: conteudoFinal,
-      user_id: userId || null
+      user_id: userId || null,
+      model_used: "gpt-4o-mini"
     }]);
 
     if (insertError) {
@@ -96,7 +95,6 @@ Regras:
       );
     }
 
-    // 🔥 Correção do bug do dashboard
     return NextResponse.json({
       url: `/s/${slugUnico}`,
       ...conteudoFinal
@@ -109,4 +107,4 @@ Regras:
       { status: 500 }
     );
   }
-  }
+}

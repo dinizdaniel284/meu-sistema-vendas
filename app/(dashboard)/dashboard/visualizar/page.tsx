@@ -57,7 +57,7 @@ export default function VisualizarPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Guia Completo</h2>
             <div className="space-y-3 text-slate-300">
-              {guia_completo.split('\n').map((par, i) => (
+              {guia_completo.split('\n').map((par: string, i: number) => (
                 <p key={i}>{par}</p>
               ))}
             </div>
