@@ -9,16 +9,17 @@ const supabase = createClient(
 export default async function PageSite({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // Buscar site pelo slug
+  // Buscar site pelo slug de forma segura
   const { data: site, error } = await supabase
     .from('sites')
     .select('*')
     .eq('slug', slug)
-    .single();
+    .maybeSingle(); // <-- Alterado de .single() para .maybeSingle()
 
+  // Se der erro de conexão ou o site realmente não existir (data for null)
   if (error || !site) {
-    console.error("Erro ao buscar site:", error);
-    notFound();
+    if (error) console.error("Erro técnico ao buscar site:", error);
+    notFound(); // Redireciona para a página 404 padrão do Next.js
   }
 
   // Desestruturando os campos da IA
