@@ -24,14 +24,24 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-Gere um JSON estrito para o produto "${produto}" com:
-headline,
-subheadline,
-guia_completo,
-beneficios (array),
-sobre_nos.
+Gere um JSON estrito para uma landing page de vendas do produto "${produto}" com:
 
-Responda SOMENTE com JSON válido, sem markdown.
+{
+  "headline": "",
+  "subheadline": "",
+  "guia_completo": "",
+  "beneficios": [],
+  "sobre_nos": ""
+}
+
+Regras:
+- Linguagem brasileira
+- Headline chamativa
+- Subheadline curta
+- Guia completo em parágrafos
+- Benefícios em bullet points
+- Sobre nós institucional
+- Responda SOMENTE com JSON válido, sem markdown
 `;
 
     const completion = await openai.chat.completions.create({
@@ -42,15 +52,31 @@ Responda SOMENTE com JSON válido, sem markdown.
 
     const responseText = completion.choices[0].message.content || "";
 
-    const aiData = JSON.parse(responseText);
+    let aiData;
+    try {
+      aiData = JSON.parse(responseText);
+    } catch (e) {
+      console.error("❌ JSON inválido da IA:", responseText);
+      return NextResponse.json(
+        { error: "Falha ao converter resposta da IA em JSON" },
+        { status: 500 }
+      );
+    }
 
-    const tagBusca = encodeURIComponent(produto.toLowerCase());
-    const urlImagemIA = `https://image.pollinations.ai/prompt/photography_${tagBusca}?width=1080&height=720`;
+    const tagBusca = produto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const urlImagemIA = `https://image.pollinations.ai/prompt/photography_${encodeURIComponent(tagBusca)}?width=1080&height=720`;
+
     const slugUnico = `${tagBusca}-${Math.random()
       .toString(36)
-      .substring(7)}`;
+      .substring(2, 8)}`;
 
-    await supabase.from('sites').insert([{
+    const { error: insertError } = await supabase.from('sites').insert([{
       slug: slugUnico,
       conteudo: {
         ...aiData,
@@ -59,6 +85,14 @@ Responda SOMENTE com JSON válido, sem markdown.
       },
       user_id: userId || null
     }]);
+
+    if (insertError) {
+      console.error("❌ Erro Supabase:", insertError);
+      return NextResponse.json(
+        { error: "Erro ao salvar no Supabase" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ url: `/s/${slugUnico}` });
 
