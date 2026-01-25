@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 
+// Cliente do Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -15,11 +16,10 @@ const supabase = createClient(
 export default function LoginPage() {
   const [origin, setOrigin] = useState('');
   const [init, setInit] = useState(false);
-  const [isMobile, setIsMobile] = useState(false); // Detectar celular
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Detecta se é celular para otimizar
     if (typeof window !== 'undefined') {
       setIsMobile(window.innerWidth < 768);
       setOrigin(window.location.origin);
@@ -31,8 +31,10 @@ export default function LoginPage() {
       setInit(true);
     });
 
+    // ESCUTA O LOGIN: Quando logar, o usuário é levado para a dashboard
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        // O Supabase já guarda o ID do usuário na sessão aqui
         router.push('/dashboard');
       }
     });
@@ -42,10 +44,10 @@ export default function LoginPage() {
 
   const particlesOptions: any = useMemo(() => ({
     background: { color: { value: "#02040a" } },
-    fpsLimit: 60, // Limitamos a 60fps para não fritar o celular
+    fpsLimit: 60,
     interactivity: {
       events: {
-        onHover: { enable: !isMobile, mode: "grab" }, // Desativa hover no mobile (não tem mouse)
+        onHover: { enable: !isMobile, mode: "grab" },
         onClick: { enable: true, mode: "push" },
       },
       modes: {
@@ -64,13 +66,13 @@ export default function LoginPage() {
       },
       move: {
         enable: true,
-        speed: isMobile ? 1.2 : 2, // Mais devagar no mobile para fluidez
+        speed: isMobile ? 1.2 : 2,
         direction: "none" as const,
         outModes: { default: "out" },
       },
       number: { 
         density: { enable: true, area: 800 }, 
-        value: isMobile ? 60 : 200 // Reduz para 60 no celular, mantém 200 no PC
+        value: isMobile ? 60 : 200 
       },
       opacity: { value: 0.5 },
       shape: { type: "circle" },
@@ -81,14 +83,12 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a] p-4">
-      {/* Luzes Neon de Fundo */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)]" />
 
       {init && (
         <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />
       )}
 
-      {/* Card de Login Menor e mais Luxuoso */}
       <div className="relative z-10 w-full max-w-[360px] animate-fade-in">
         <div className="bg-black/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2rem] border border-emerald-500/20 shadow-2xl">
           <div className="flex flex-col items-center mb-6">
@@ -98,6 +98,7 @@ export default function LoginPage() {
             <h1 className="text-xl font-black text-white tracking-widest uppercase text-center">
               NET<span className="text-emerald-500">WORK</span>
             </h1>
+            <p className="text-emerald-500/60 text-[10px] mt-2 font-bold tracking-widest">SISTEMA PRIVADO</p>
           </div>
 
           <Auth
@@ -118,13 +119,31 @@ export default function LoginPage() {
               },
             }}
             theme="dark"
-            providers={[]}
+            providers={[]} // Apenas e-mail e senha por enquanto
             redirectTo={`${origin}/dashboard`}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'E-mail',
+                  password_label: 'Senha',
+                  button_label: 'Acessar Sistema',
+                  loading_button_label: 'Autenticando...',
+                  link_text: 'Já tem uma conta? Entre',
+                },
+                sign_up: {
+                  email_label: 'E-mail',
+                  password_label: 'Crie uma senha',
+                  button_label: 'Criar Minha Conta',
+                  loading_button_label: 'Registrando...',
+                  link_text: 'Não tem conta? Cadastre-se',
+                }
+              }
+            }}
           />
         </div>
         
         <p className="text-center text-emerald-500/30 text-[8px] mt-6 uppercase tracking-[0.4em] font-bold">
-          © 2026 DINIZ DEV // SISTEMA OTIMIZADO
+          © 2026 DINIZ DEV // DATA ISOLATION ACTIVE
         </p>
       </div>
     </main>
