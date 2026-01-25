@@ -19,21 +19,28 @@ export async function POST(req: Request) {
     if (!produto) return NextResponse.json({ error: "Produto" }, { status: 400 });
     if (!userId) return NextResponse.json({ error: "Auth" }, { status: 401 });
 
-    // 🧠 PROMPT DOUTRINADOR: Forcei o contexto de moda humana
+    // 🧠 PROMPT INTELIGENTE: Identifica o nicho e evita confusões
     const prompt = `
-      Você é um copywriter de MODA E ESTILO. Gere um JSON para o produto: "${produto}".
+      Você é um copywriter de elite especialista em Vendas Online. Gere um JSON para o produto: "${produto}".
       
-      REGRAS INEGOCIÁVEIS:
-      1. Se o produto for "Bone" ou "Boné", trate EXCLUSIVAMENTE como vestuário/acessório de moda humana.
-      2. É PROIBIDO mencionar cachorros, pets, ossos ou ração. 
-      3. Foque em: Estilo, Tecido, Caimento, Status e Streetwear.
-      4. Retorne APENAS o JSON.
+      REGRAS RÍGIDAS:
+      1. Identifique o nicho (Comida, Moda, Eletrônicos, etc) e use o tom de voz adequado.
+      2. Se for Moda (Boné), foque em Estilo. Se for Comida (Bolo), foque em Sabor e Desejo.
+      3. É PROIBIDO misturar nichos (não fale de pets para humanos, nem de roupas para comida).
+      4. Retorne APENAS o JSON no formato:
+      {
+        "headline": "Título impacto",
+        "subheadline": "Frase curta",
+        "guia_completo": "Texto longo de venda",
+        "beneficios": ["item 1", "item 2", "item 3"],
+        "sobre_nos": "Nossa marca"
+      }
     `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.3, // 🌡️ Baixei mais para ela ser bem obediente
+      temperature: 0.6, // 🌡️ Um pouco mais de criatividade para mudar de nicho
     });
 
     const responseText = completion.choices[0].message.content || "";
@@ -45,11 +52,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Falha na IA" }, { status: 500 });
     }
 
-    // 🔗 CORREÇÃO DA IMAGEM: Adicionei "fashion_apparel" para a IA de imagem não desenhar um osso
-    const tagBusca = `${produto} fashion apparel style`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
-    const urlImagemIA = `https://image.pollinations.ai/prompt/professional_photography_of_human_wearing_${encodeURIComponent(tagBusca)}_high_fashion_boutique?width=1080&height=720&nologo=true`;
+    // 🔗 IMAGEM DINÂMICA: Busca profissional baseada APENAS no nome do produto
+    const tagBusca = produto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
+    const urlImagemIA = `https://image.pollinations.ai/prompt/professional_studio_photography_of_${encodeURIComponent(tagBusca)}_high_quality_4k_commercial?width=1080&height=720&nologo=true`;
     
-    const slugUnico = `${tagBusca.split('-')[0]}-${Math.random().toString(36).substring(2, 8)}`;
+    const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(2, 8)}`;
 
     const conteudoFinal = {
       ...aiData,
@@ -75,4 +82,4 @@ export async function POST(req: Request) {
   } catch (err) {
     return NextResponse.json({ error: 'Erro' }, { status: 500 });
   }
-        }
+      }
