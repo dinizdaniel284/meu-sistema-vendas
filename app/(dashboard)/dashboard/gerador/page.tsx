@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js'; // Mudança para o cliente padrão
 import { useRouter } from 'next/navigation';
 
 export default function GeradorPage() {
@@ -10,7 +10,8 @@ export default function GeradorPage() {
   const [meusSites, setMeusSites] = useState<any[]>([]);
   const router = useRouter();
 
-  const supabase = createBrowserClient(
+  // Cliente instanciado de forma persistente
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
@@ -23,15 +24,15 @@ export default function GeradorPage() {
 
   async function carregarSites() {
     try {
-      // 🛡️ Pega o usuário logado para filtrar a busca
-      const { data: { session } } = await supabase.auth.getSession();
+      // Usando getUser para garantir que a sessão é válida
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!session) return;
+      if (!user) return;
 
       const { data, error } = await supabase
         .from('sites')
         .select('*')
-        .eq('user_id', session.user.id) // ✅ FILTRO: Só carrega o que é meu
+        .eq('user_id', user.id) 
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -54,11 +55,11 @@ export default function GeradorPage() {
       return;
     }
 
-    // 🛡️ Pega o usuário logado para enviar o ID para a API
-    const { data: { session } } = await supabase.auth.getSession();
+    // Validação robusta de usuário antes de chamar a IA
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (!session) {
-      alert("Sessão expirada. Faça login novamente.");
+    if (authError || !user) {
+      alert("Sessão expirada. Por favor, saia e entre novamente.");
       router.push('/login');
       return;
     }
@@ -75,7 +76,7 @@ export default function GeradorPage() {
         body: JSON.stringify({ 
           produto, 
           whatsapp, 
-          userId: session.user.id // ✅ ENVIO: O crachá do usuário para a API
+          userId: user.id // Passando o ID validado
         }),
         signal: controller.signal,
       });
@@ -101,14 +102,13 @@ export default function GeradorPage() {
     if (!confirm("Apagar este site permanentemente?")) return;
 
     try {
-      // 🛡️ O RLS do banco já garante que você só deleta se for o dono
       const { error } = await supabase
         .from('sites')
         .delete()
         .eq('id', id);
 
       if (error) {
-        alert("Não foi possível apagar o site.");
+        alert("Erro ao deletar. Você só pode apagar seus próprios sites.");
       } else {
         setMeusSites(prev => prev.filter(site => site.id !== id));
       }
@@ -160,7 +160,7 @@ export default function GeradorPage() {
                 </div>
               ) : (
                 meusSites.map((site) => (
-                  <div key={site.id} className="bg-slate-900/80 border border-white/5 rounded-2xl overflow-hidden group hover:border-emerald-500/30 transition-all">
+                  <div key={site.id} className="bg-slate-900/80 border border-white/5 rounded-2xl overflow-hidden group hover:border-emerald-500/30 transition-all shadow-lg">
                     <div className="h-32 bg-slate-800 relative">
                       {site.conteudo?.imagem ? (
                         <img src={site.conteudo.imagem} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt="Site" />
@@ -198,4 +198,4 @@ export default function GeradorPage() {
       </div>
     </div>
   );
-            }
+              }
