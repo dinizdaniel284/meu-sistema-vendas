@@ -23,9 +23,15 @@ export default function GeradorPage() {
 
   async function carregarSites() {
     try {
+      // 🛡️ Pega o usuário logado para filtrar a busca
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) return;
+
       const { data, error } = await supabase
         .from('sites')
         .select('*')
+        .eq('user_id', session.user.id) // ✅ FILTRO: Só carrega o que é meu
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -48,6 +54,15 @@ export default function GeradorPage() {
       return;
     }
 
+    // 🛡️ Pega o usuário logado para enviar o ID para a API
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      alert("Sessão expirada. Faça login novamente.");
+      router.push('/login');
+      return;
+    }
+
     setGerando(true);
 
     try {
@@ -57,7 +72,11 @@ export default function GeradorPage() {
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ produto, whatsapp }),
+        body: JSON.stringify({ 
+          produto, 
+          whatsapp, 
+          userId: session.user.id // ✅ ENVIO: O crachá do usuário para a API
+        }),
         signal: controller.signal,
       });
 
@@ -82,6 +101,7 @@ export default function GeradorPage() {
     if (!confirm("Apagar este site permanentemente?")) return;
 
     try {
+      // 🛡️ O RLS do banco já garante que você só deleta se for o dono
       const { error } = await supabase
         .from('sites')
         .delete()
@@ -100,21 +120,22 @@ export default function GeradorPage() {
   return (
     <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-black mb-6 italic text-blue-500">DINIZ DEV IA</h1>
+        <h1 className="text-3xl font-black mb-6 italic text-emerald-500 uppercase tracking-tighter">
+          DINIZ<span className="text-white">DEV</span> IA
+        </h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Formulário de Criação */}
-          <div className="bg-white/5 p-6 rounded-3xl border border-white/10 h-fit">
+          <div className="bg-white/5 p-6 rounded-3xl border border-white/10 h-fit shadow-2xl backdrop-blur-md">
             <h2 className="text-xl font-bold mb-4">Criar Novo Site</h2>
             <input
-              className="w-full mb-3 bg-black/40 border border-white/10 rounded-xl px-4 py-3"
-              placeholder="Produto"
+              className="w-full mb-3 bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Nome do Produto"
               value={produto}
               onChange={(e) => setProduto(e.target.value)}
             />
             <input
-              className="w-full mb-4 bg-black/40 border border-white/10 rounded-xl px-4 py-3"
-              placeholder="WhatsApp"
+              className="w-full mb-4 bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Seu WhatsApp"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
             />
@@ -122,61 +143,49 @@ export default function GeradorPage() {
               onClick={gerarKitVendas}
               disabled={gerando}
               className={`w-full py-4 rounded-xl font-black transition-all ${
-                gerando ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/20'
+                gerando ? 'bg-gray-600 cursor-wait' : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 active:scale-95'
               }`}
             >
               {gerando ? '🧠 PROCESSANDO...' : 'GERAR SITE'}
             </button>
           </div>
 
-          {/* Lista de Sites Gerados */}
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest text-sm">Meus Sites</h2>
+            <h2 className="text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest text-sm">Meus Projetos Privados</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {meusSites.length === 0 ? (
-                <p className="text-slate-400 text-sm">Nenhum site gerado ainda.</p>
+                <div className="col-span-full border-2 border-dashed border-white/5 rounded-3xl p-10 text-center">
+                   <p className="text-slate-400 text-sm">Nenhum site encontrado na sua conta.</p>
+                </div>
               ) : (
                 meusSites.map((site) => (
-                  <div key={site.id} className="bg-slate-900/80 border border-white/5 rounded-2xl overflow-hidden group">
-                    {/* Imagem */}
+                  <div key={site.id} className="bg-slate-900/80 border border-white/5 rounded-2xl overflow-hidden group hover:border-emerald-500/30 transition-all">
                     <div className="h-32 bg-slate-800 relative">
                       {site.conteudo?.imagem ? (
-                        <img src={site.conteudo.imagem} className="w-full h-full object-cover" alt="Site" />
+                        <img src={site.conteudo.imagem} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt="Site" />
                       ) : (
                         <div className="flex items-center justify-center h-full text-[10px] text-slate-500 italic">Sem Preview</div>
                       )}
                     </div>
 
                     <div className="p-4">
-                      <h3 className="font-bold text-sm truncate">
-                        {site.conteudo?.headline || 'Produto sem título'}
+                      <h3 className="font-bold text-sm truncate uppercase tracking-tight">
+                        {site.conteudo?.headline || 'Produto Gerado'}
                       </h3>
-                      
-                      {/* ✅ AJUSTE: decodeURIComponent limpa o %20 do link */}
-                      <p className="text-[10px] text-blue-400 mb-3 truncate">
+                      <p className="text-[10px] text-emerald-400 mb-3 truncate font-mono">
                         /s/{decodeURIComponent(site.slug)}
                       </p>
 
                       <div className="flex gap-2">
-                        <a
-                          href={`/s/${site.slug}`}
-                          target="_blank"
-                          className="flex-1 text-center text-[10px] bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition-all"
-                        >
+                        <a href={`/s/${site.slug}`} target="_blank" className="flex-1 text-center text-[10px] bg-white/5 border border-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition-all">
                           Abrir
                         </a>
-                        <button
-                          onClick={() => copiarLink(site.slug)}
-                          className="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-2 rounded-lg"
-                        >
-                          Copiar
+                        <button onClick={() => copiarLink(site.slug)} className="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-2 rounded-lg">
+                          Link
                         </button>
-                        <button
-                          onClick={() => deletarSite(site.id)}
-                          className="text-[10px] bg-red-500/10 text-red-500 px-3 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
-                        >
-                          Apagar
+                        <button onClick={() => deletarSite(site.id)} className="text-[10px] bg-red-500/10 text-red-500 px-3 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                          Deletar
                         </button>
                       </div>
                     </div>
@@ -189,4 +198,4 @@ export default function GeradorPage() {
       </div>
     </div>
   );
-}
+            }
