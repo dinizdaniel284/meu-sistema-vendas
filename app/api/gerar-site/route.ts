@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,20 +16,32 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { produto, whatsapp, userId } = body;
 
-    if (!produto)
-      return NextResponse.json({ error: "Produto" }, { status: 400 });
+    if (!produto) {
+      return NextResponse.json(
+        { error: "Produto não informado" },
+        { status: 400 }
+      );
+    }
 
-    if (!userId)
-      return NextResponse.json({ error: "Auth" }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Usuário não autenticado" },
+        { status: 401 }
+      );
+    }
 
     const prompt = `
-Você é um copywriter de elite especialista em Vendas Online. Gere um JSON para o produto: "${produto}".
+Você é um copywriter de elite especialista em Vendas Online.
+
+Gere um JSON para o produto: "${produto}".
 
 REGRAS RÍGIDAS:
 1. Identifique o nicho (Comida, Moda, Eletrônicos, etc) e use o tom de voz adequado.
-2. Se for Moda (Boné), foque em Estilo. Se for Comida (Bolo), foque em Sabor e Desejo.
-3. É PROIBIDO misturar nichos (não fale de pets para humanos, nem de roupas para comida).
-4. Retorne APENAS o JSON no formato:
+2. Se for Moda (Boné), foque em Estilo.
+3. Se for Comida (Bolo), foque em Sabor e Desejo.
+4. É PROIBIDO misturar nichos.
+5. Retorne APENAS o JSON no formato:
+
 {
   "headline": "Título impacto",
   "subheadline": "Frase curta",
@@ -39,47 +51,55 @@ REGRAS RÍGIDAS:
 }
 `;
 
-    const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: prompt,
-    });
+    let completion;
 
-    // 🔒 EXTRAÇÃO SEGURA DO TEXTO
-    let responseText = "";
+    try {
+      completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.6,
+      });
+    } catch (err: any) {
+      console.error("❌ Erro OpenAI:", err);
 
-    if (response.output_text) {
-      responseText = response.output_text;
-    } else if (Array.isArray(response.output)) {
-      for (const item of response.output) {
-        if (item.type === "message") {
-          for (const part of item.content) {
-            if (part.type === "output_text") {
-              responseText += part.text;
-            }
-          }
-        }
+      // 🔥 TRATAMENTO PROFISSIONAL DE QUOTA
+      if (err?.status === 429 || err?.code === 'insufficient_quota') {
+        return NextResponse.json(
+          {
+            error: "IA temporariamente indisponível. Limite de uso atingido. Tente novamente mais tarde."
+          },
+          { status: 503 }
+        );
       }
+
+      return NextResponse.json(
+        { error: "Falha ao gerar conteúdo com a IA" },
+        { status: 500 }
+      );
     }
 
-    if (!responseText) {
-      console.error("Resposta vazia da OpenAI:", response);
-      return NextResponse.json({ error: "Falha na IA" }, { status: 500 });
-    }
+    const responseText = completion.choices[0].message.content || "";
 
-    let aiData;
+    let aiData: any;
+
     try {
       const cleanJson = responseText.replace(/```json|```/g, "").trim();
       aiData = JSON.parse(cleanJson);
     } catch (e) {
-      console.error("Erro ao parsear JSON da IA:", responseText);
-      return NextResponse.json({ error: "Falha na IA" }, { status: 500 });
+      console.error("❌ JSON inválido da IA:", responseText);
+
+      return NextResponse.json(
+        { error: "Resposta inválida da IA" },
+        { status: 500 }
+      );
     }
 
     const tagBusca = produto
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-");
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
     const urlImagemIA = `https://image.pollinations.ai/prompt/professional_studio_photography_of_${encodeURIComponent(
       tagBusca
@@ -95,7 +115,7 @@ REGRAS RÍGIDAS:
       whatsapp: whatsapp || null,
     };
 
-    const { error: insertError } = await supabase.from("sites").insert([
+    const { error: insertError } = await supabase.from('sites').insert([
       {
         slug: slugUnico,
         conteudo: conteudoFinal,
@@ -105,8 +125,12 @@ REGRAS RÍGIDAS:
     ]);
 
     if (insertError) {
-      console.error("Erro Supabase:", insertError);
-      return NextResponse.json({ error: "Erro Supabase" }, { status: 500 });
+      console.error("❌ Erro Supabase:", insertError);
+
+      return NextResponse.json(
+        { error: "Erro ao salvar no banco" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -114,8 +138,13 @@ REGRAS RÍGIDAS:
       slug: slugUnico,
       ...conteudoFinal,
     });
+
   } catch (err) {
-    console.error("Erro geral API gerar-site:", err);
-    return NextResponse.json({ error: "Erro" }, { status: 500 });
+    console.error("❌ Erro geral API gerar-site:", err);
+
+    return NextResponse.json(
+      { error: "Erro interno no servidor" },
+      { status: 500 }
+    );
   }
 }
