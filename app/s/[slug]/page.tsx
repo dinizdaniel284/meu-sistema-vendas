@@ -21,14 +21,12 @@ export default async function PageSite({ params }: { params: Promise<{ slug: str
     notFound();
   }
 
-  // 🛡️ Extração Blindada: Pega os dados mesmo que a estrutura mude
   const conteudo = site.conteudo || {};
-  
   const headline = conteudo.headline || "Produto Exclusivo";
   const subheadline = conteudo.subheadline || "Qualidade e Estilo em cada detalhe.";
   const guia_completo = conteudo.guia_completo || "";
+  const sobre_nos = conteudo.sobre_nos || "";
   
-  // 🧠 Inteligência de Array: Se a Groq mandar string, a gente converte em lista
   const beneficiosRaw = conteudo.beneficios || [];
   const beneficios = Array.isArray(beneficiosRaw) 
     ? beneficiosRaw 
@@ -36,91 +34,129 @@ export default async function PageSite({ params }: { params: Promise<{ slug: str
       ? beneficiosRaw.split(',').map((b: string) => b.trim())
       : [];
 
-  // 🖼️ Imagem: Fallback caso a URL gerada esteja vazia
-  const imagem = conteudo.imagem || `https://loremflickr.com/1080/720/${encodeURIComponent(decodedSlug.split('-')[0])}`;
+  const imagem = conteudo.imagem || `https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop`;
   const whatsapp = conteudo.whatsapp || "";
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans">
-      {/* HEADER / HERO SECTION */}
-      <section className="relative w-full h-[70vh] flex items-center justify-center overflow-hidden">
-        <img 
-          src={imagem} 
-          alt={headline} 
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#020617]/80 to-[#020617]" />
+    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-emerald-500 selection:text-white">
+      
+      {/* --- HERO SECTION --- */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6">
+        {/* Imagem de Fundo com Overlay Paralax-like */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={imagem} 
+            alt={headline} 
+            className="w-full h-full object-cover opacity-30 scale-105 animate-pulse-slow" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/20 via-[#020617]/80 to-[#020617]" />
+        </div>
         
-        <div className="relative z-10 max-w-4xl px-6 text-center">
-          <h1 className="text-4xl md:text-7xl font-black text-white mb-6 leading-[1.1] tracking-tighter italic uppercase drop-shadow-2xl">
+        <div className="relative z-10 max-w-5xl text-center">
+          <span className="inline-block px-4 py-1.5 mb-6 text-[10px] font-black tracking-[0.3em] text-emerald-400 border border-emerald-500/30 rounded-full bg-emerald-500/5 backdrop-blur-sm uppercase animate-fade-in">
+            Oportunidade Exclusiva
+          </span>
+          <h1 className="text-5xl md:text-8xl font-black text-white mb-8 leading-[0.9] tracking-tighter uppercase italic drop-shadow-2xl">
             {headline}
           </h1>
-          <p className="text-xl md:text-2xl text-blue-400 font-medium max-w-2xl mx-auto italic">
+          <p className="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto leading-relaxed">
             {subheadline}
           </p>
+          
+          <div className="mt-12 animate-bounce">
+            <a href="#conteudo" className="text-slate-500 hover:text-white transition-colors">
+              <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </a>
+          </div>
         </div>
       </section>
 
-      {/* CONTEÚDO PRINCIPAL */}
-      <section className="max-w-4xl mx-auto px-6 py-20 border-t border-white/5">
-        <div className="grid md:grid-cols-2 gap-12 items-start">
+      {/* --- CONTEÚDO E BENEFÍCIOS --- */}
+      <section id="conteudo" className="max-w-6xl mx-auto px-6 py-24">
+        <div className="grid lg:grid-cols-12 gap-16">
           
-          {/* COLUNA ESQUERDA: DESCRIÇÃO */}
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-white flex items-center gap-3 italic">
-              <span className="w-8 h-1 bg-blue-500 rounded-full" /> O GUIA COMPLETO
-            </h2>
-            <div className="text-slate-400 leading-relaxed space-y-4 text-lg">
-              {guia_completo ? (
-                guia_completo.split('\n').map((par: string, i: number) => (
-                  <p key={i}>{par}</p>
-                ))
-              ) : (
-                <p>Conheça todos os benefícios e diferenciais deste produto feito especialmente para você.</p>
-              )}
+          {/* Lado Esquerdo: Texto Persuasivo */}
+          <div className="lg:col-span-7 space-y-12">
+            <div>
+              <h2 className="text-sm font-black text-emerald-500 tracking-[0.4em] uppercase mb-4">A Experiência</h2>
+              <div className="text-slate-300 leading-relaxed space-y-6 text-xl font-light">
+                {guia_completo ? (
+                  guia_completo.split('\n').map((par: string, i: number) => (
+                    <p key={i} className="first-letter:text-5xl first-letter:font-black first-letter:text-white first-letter:mr-3 first-letter:float-left">{par}</p>
+                  ))
+                ) : (
+                  <p>Descubra um novo padrão de excelência desenvolvido para quem não aceita o comum.</p>
+                )}
+              </div>
+            </div>
+
+            {sobre_nos && (
+              <div className="p-8 border-l-2 border-emerald-500/30 bg-white/5 rounded-r-3xl">
+                <h3 className="text-lg font-bold text-white mb-4 italic uppercase">Nossa Autoridade</h3>
+                <p className="text-slate-400 italic text-lg leading-relaxed">{sobre_nos}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Lado Direito: Card de Benefícios (Sticky) */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-12 bg-white/[0.03] backdrop-blur-xl p-10 rounded-[40px] border border-white/10 shadow-2xl">
+              <h3 className="text-2xl font-black mb-8 text-white uppercase italic tracking-tighter">
+                Por que escolher <span className="text-emerald-500">Isto?</span>
+              </h3>
+              <ul className="space-y-6">
+                {beneficios.map((item: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-4 group">
+                    <div className="mt-1 h-5 w-5 rounded-full border border-emerald-500/50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500 transition-all duration-300">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-white" />
+                    </div>
+                    <span className="text-lg text-slate-300 font-medium group-hover:text-white transition-colors">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA dentro do Card */}
+              <div className="mt-12">
+                <a
+                  href={whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=Olá! Quero saber mais sobre ${headline}.` : '#'}
+                  target="_blank"
+                  className="relative flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl transition-all text-xl uppercase tracking-tighter shadow-[0_20px_40px_rgba(16,185,129,0.3)] active:scale-95 overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Garantir Agora 
+                    <svg className="w-6 h-6 animate-bounce-x" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </span>
+                </a>
+                <p className="text-center text-slate-500 text-[10px] mt-4 uppercase tracking-widest font-bold">Vagas e Unidades Limitadas</p>
+              </div>
             </div>
           </div>
-
-          {/* COLUNA DIREITA: BENEFÍCIOS */}
-          <div className="bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md">
-            <h3 className="text-xl font-black mb-6 uppercase tracking-widest text-blue-500">
-              Diferenciais
-            </h3>
-            <ul className="space-y-4">
-              {beneficios.length > 0 ? (
-                beneficios.map((item: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <span className="bg-emerald-500/20 text-emerald-400 p-1 rounded-full text-[10px]">✓</span>
-                    <span className="font-medium text-slate-300">{item}</span>
-                  </li>
-                ))
-              ) : (
-                <li className="text-slate-500 italic text-sm">Qualidade premium garantida.</li>
-              )}
-            </ul>
-          </div>
         </div>
       </section>
 
-      {/* FOOTER / CTA */}
-      <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-        <a
-          href={whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=Olá! Quero saber mais sobre ${headline}.` : '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`group block w-full ${
-            whatsapp 
-              ? 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_50px_rgba(16,185,129,0.2)]' 
-              : 'bg-gray-600 cursor-not-allowed opacity-50'
-          } text-white font-black py-6 rounded-2xl transition-all text-2xl uppercase tracking-tighter`}
-        >
-          {whatsapp ? 'GARANTIR AGORA 🚀' : 'WhatsApp Indisponível'}
-        </a>
-        
-        <p className="mt-12 text-[10px] text-slate-600 uppercase tracking-[0.4em] font-bold">
-          Powered by <span className="text-blue-600">DINIZ DEV IA</span>
+      {/* --- FOOTER FINAL --- */}
+      <footer className="border-t border-white/5 py-12 text-center">
+        <p className="text-[10px] text-slate-600 uppercase tracking-[0.5em] font-black">
+          &copy; 2026 DINIZ <span className="text-emerald-500">DEV</span> IA - Todos os direitos reservados
         </p>
+      </footer>
+
+      {/* BOTÃO WHATSAPP FLUTUANTE (MOBILE ONLY) */}
+      <div className="fixed bottom-6 right-6 z-50 md:hidden">
+        <a
+          href={whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : '#'}
+          className="bg-emerald-500 p-4 rounded-full shadow-2xl flex items-center justify-center animate-bounce"
+        >
+          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.67-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.938 3.659 1.434 5.627 1.435h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </svg>
+        </a>
       </div>
+
     </main>
   );
 }
