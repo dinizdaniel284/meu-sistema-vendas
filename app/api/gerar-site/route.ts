@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Groq from "groq-sdk";
 
-// 🚀 CONFIGURAÇÕES DE TEMPO PARA MODELOS GRANDES (70B)
+// 🚀 CONFIGURAÇÕES DE TEMPO E DINÂMICA
 export const maxDuration = 60; 
 export const dynamic = 'force-dynamic';
 
@@ -11,9 +11,10 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export async function POST(req: Request) {
+  // 🔑 INICIALIZAÇÃO DENTRO DO POST: Evita erro de variável ausente no build
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
   try {
     const body = await req.json();
     const { produto, whatsapp, userId } = body;
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
 
-    // 🧠 PROMPT OTIMIZADO COM KEYWORD PARA PEXELS
+    // 🧠 PROMPT OTIMIZADO
     const prompt = `Você é um copywriter de elite internacional. Gere um JSON de vendas para o produto: "${produto}". 
     O conteúdo deve ser luxuoso, persuasivo e focado em conversão.
     Retorne APENAS o JSON puro, sem textos extras, neste formato:
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
       "keyword_ingles": "One or two professional keywords in ENGLISH for high-end photography search of this product"
     }`;
 
-    // 🔄 SISTEMA DE RE-TENTATIVA (RETRY) PARA EVITAR TIMEOUT DA GROQ
+    // 🔄 SISTEMA DE RE-TENTATIVA (RETRY)
     let chatCompletion;
     let retries = 3;
     
@@ -47,12 +48,11 @@ export async function POST(req: Request) {
           temperature: 0.6,
           response_format: { type: "json_object" } 
         });
-        break; // Sucesso! Sai do loop.
+        break; 
       } catch (error: any) {
         retries--;
         console.error(`⚠️ Groq Connection Error. Tentativas restantes: ${retries}`);
         if (retries === 0) throw new Error("A Groq demorou muito para responder. Tente novamente.");
-        // Espera 1.5 segundos antes de tentar a próxima conexão
         await new Promise(res => setTimeout(res, 1500));
       }
     }
@@ -86,11 +86,9 @@ export async function POST(req: Request) {
 
     const conteudoFinal = { ...aiData, imagem: urlFinal, whatsapp: whatsapp || null };
     
-    // Gerar slug amigável
     const tagBusca = produto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
     const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // Salvar no Supabase
     const { error: insertError } = await supabase.from('sites').insert([{
       slug: slugUnico,
       conteudo: conteudoFinal,
