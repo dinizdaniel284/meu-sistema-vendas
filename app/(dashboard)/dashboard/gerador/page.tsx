@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import LoadingGerador from '@/app/components/LoadingGerador'; 
@@ -13,150 +13,116 @@ export default function GeradorPage() {
   const [produto, setProduto] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [gerando, setGerando] = useState(false);
+  const [meusSites, setMeusSites] = useState<any[]>([]);
   const router = useRouter();
 
-  async function gerarKitVendas() {
-    // 1. Validação simples
-    if (!produto || !whatsapp) {
-      alert("Preencha o produto e o WhatsApp!");
-      return;
-    }
-
-    // 2. BLOQUEIO DE SEGURANÇA (Evita os 3 sites iguais)
-    if (gerando) return; 
-
+  // 1. CARREGAR OS SITES (Para você poder deletar os clones)
+  async function carregarSites() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("Sessão expirada.");
-      router.push('/login');
-      return;
-    }
+    if (!user) return;
+    const { data } = await supabase
+      .from('sites')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setMeusSites(data || []);
+  }
+
+  useEffect(() => { carregarSites(); }, []);
+
+  // 2. FUNÇÃO DE GERAR COM TRAVA ANTI-LOOP
+  async function gerarKitVendas() {
+    if (!produto || !whatsapp || gerando) return; // BLOQUEIO DUPLO
 
     setGerando(true);
-
     try {
-      const whatsappLimpo = whatsapp.replace(/\D/g, '');
-
-      // Chamada para a sua API que usa o LLAMA-3.3-70B
+      const { data: { user } } = await supabase.auth.getUser();
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          produto, 
-          whatsapp: whatsappLimpo, 
-          userId: user.id 
-        }),
+        body: JSON.stringify({ produto, whatsapp, userId: user?.id }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erro na resposta da IA");
+      if (response.ok) {
+        setProduto(''); // Limpa o campo pra evitar re-envio
+        await carregarSites(); // Atualiza a lista
+        alert("Site gerado com sucesso! 🚀");
       }
-
-      const data = await response.json();
-
-      // Sucesso: Redireciona direto para o Dashboard para ver o novo projeto
-      localStorage.setItem('last_generated_site', JSON.stringify(data));
-      router.push('/dashboard');
-      router.refresh();
-
-    } catch (err: any) {
-      console.error("Erro na geração:", err);
-      alert("A IA está processando muitos pedidos. Tente clicar novamente em 5 segundos.");
+    } catch (err) {
+      console.error(err);
     } finally {
-      // Pequeno delay antes de liberar o botão novamente para garantir estabilidade
-      setTimeout(() => setGerando(false), 1000);
+      setGerando(false);
     }
   }
 
+  // 3. FUNÇÃO DE DELETAR (Para limpar a bagunça)
+  async function deletarSite(id: string) {
+    if (!confirm("Apagar este clone?")) return;
+    await supabase.from('sites').delete().eq('id', id);
+    setMeusSites(prev => prev.filter(s => s.id !== id));
+  }
+
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      
-      {/* Overlay de Loading quando estiver gerando */}
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8">
       {gerando && <LoadingGerador />}
 
-      {/* BACKGROUND DECORATION (Efeito Neural) */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600/20 blur-[120px] rounded-full" />
-      </div>
+      <div className="max-w-6xl mx-auto">
+        <header className="flex justify-between items-center mb-10">
+          <h1 className="text-2xl font-black italic text-emerald-500 uppercase">DINIZDEV IA</h1>
+          <button onClick={() => router.push('/dashboard')} className="text-[10px] border border-white/10 px-4 py-2 rounded-full hover:bg-white/5">Voltar Painel</button>
+        </header>
 
-      <div className="max-w-xl w-full z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        
-        {/* HEADER DO GERADOR */}
-        <div className="text-center mb-10">
-          <h1 className="text-6xl font-black tracking-tighter mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent italic">
-            Vendas IA
-          </h1>
-          <p className="text-slate-400 text-lg font-medium leading-relaxed">
-            Insira seus dados e deixe nossa rede neural desenhar o seu funil de conversão em segundos.
-          </p>
-        </div>
-
-        {/* FORMULÁRIO ESTILO ELITE */}
-        <div className="bg-white/[0.03] border border-white/10 p-8 rounded-[40px] backdrop-blur-2xl shadow-2xl">
-          <div className="space-y-8">
-            <div className="relative group">
-              <label className="text-[10px] uppercase tracking-[0.3em] text-slate-500 ml-4 mb-2 block">Seu melhor e-mail</label>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* LADO ESQUERDO: FORMULÁRIO */}
+          <div className="bg-white/5 p-6 rounded-[32px] border border-white/10 h-fit backdrop-blur-md">
+            <h2 className="text-lg font-bold mb-4">Novo Projeto</h2>
+            <div className="space-y-4">
               <input
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition-all text-white placeholder:text-slate-700"
-                placeholder="exemplo@email.com"
-                type="email"
-              />
-            </div>
-
-            <div className="relative group">
-              <label className="text-[10px] uppercase tracking-[0.3em] text-slate-500 ml-4 mb-2 block">O que você vende?</label>
-              <input
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition-all text-white placeholder:text-slate-700"
-                placeholder="Ex: Mentorias, Doces, Hamburgueria..."
+                className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-emerald-500 transition-all"
+                placeholder="O que você vende?"
                 value={produto}
                 onChange={(e) => setProduto(e.target.value)}
               />
-            </div>
-
-            <div className="relative group">
-              <label className="text-[10px] uppercase tracking-[0.3em] text-slate-500 ml-4 mb-2 block">WhatsApp de Conversão</label>
               <input
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition-all text-white placeholder:text-slate-700"
-                placeholder="11999999999"
+                className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-emerald-500 transition-all"
+                placeholder="WhatsApp"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
               />
+              <button
+                onClick={gerarKitVendas}
+                disabled={gerando}
+                className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${
+                  gerando ? 'bg-slate-700' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20'
+                }`}
+              >
+                {gerando ? '🧠 GERANDO...' : 'CRIAR LANDING PAGE'}
+              </button>
             </div>
+          </div>
 
-            <button
-              onClick={gerarKitVendas}
-              disabled={gerando}
-              className={`w-full py-6 rounded-3xl font-black text-lg uppercase tracking-widest transition-all shadow-[0_20px_40px_rgba(37,99,235,0.2)] ${
-                gerando 
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-500 text-white hover:scale-[1.02] active:scale-95'
-              }`}
-            >
-              {gerando ? '🧠 PROCESSANDO DADOS...' : 'GERAR MINHA ESTRATÉGIA AGORA'}
-            </button>
+          {/* LADO DIREITO: LISTA PARA LIMPAR A BAGUNÇA */}
+          <div className="lg:col-span-2">
+            <h2 className="text-sm font-bold mb-4 text-slate-500 uppercase tracking-widest">Seus Projetos ({meusSites.length})</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {meusSites.map((site) => (
+                <div key={site.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex justify-between items-center group hover:border-red-500/30 transition-all">
+                  <div className="truncate pr-4">
+                    <p className="text-xs font-bold uppercase truncate">{site.conteudo?.headline || site.slug}</p>
+                    <p className="text-[9px] text-slate-500 font-mono">/s/{site.slug}</p>
+                  </div>
+                  <button 
+                    onClick={() => deletarSite(site.id)}
+                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-xs"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* AI ANALYSIS BOARD */}
-        <div className="mt-8 bg-black/40 border border-white/5 rounded-[32px] p-6 backdrop-blur-md">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-[9px] font-mono text-blue-400 tracking-[0.4em] uppercase">AI Analysis Board</span>
-            <span className="text-[9px] font-mono text-slate-600">Waiting Input</span>
-          </div>
-          <div className="flex flex-col items-center py-6">
-            <div className={`w-12 h-12 rounded-full border border-dashed border-slate-700 flex items-center justify-center ${gerando && 'animate-spin border-blue-500'}`}>
-               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-            </div>
-            <p className="mt-4 text-[9px] text-slate-600 font-bold tracking-[0.4em] uppercase">
-              {gerando ? "Desenhando Funil de Alta Conversão..." : "Aguardando entrada de dados..."}
-            </p>
-          </div>
-        </div>
-
       </div>
     </div>
   );
-            }
-      
+        }
