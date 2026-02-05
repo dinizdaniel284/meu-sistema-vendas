@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 
-// Cliente do Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -31,10 +30,8 @@ export default function LoginPage() {
       setInit(true);
     });
 
-    // ESCUTA O LOGIN: Quando logar, o usuário é levado para a dashboard
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // O Supabase já guarda o ID do usuário na sessão aqui
         router.push('/dashboard');
       }
     });
@@ -72,7 +69,7 @@ export default function LoginPage() {
       },
       number: { 
         density: { enable: true, area: 800 }, 
-        value: isMobile ? 60 : 200 
+        value: isMobile ? 50 : 150 // Reduzido para performance mobile
       },
       opacity: { value: 0.5 },
       shape: { type: "circle" },
@@ -83,22 +80,23 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a] p-4">
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)]" />
+      {/* Glow suave no fundo */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)] pointer-events-none" />
 
       {init && (
         <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />
       )}
 
-      <div className="relative z-10 w-full max-w-[360px] animate-fade-in">
-        <div className="bg-black/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2rem] border border-emerald-500/20 shadow-2xl">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-              <span className="text-black text-2xl font-black italic">D</span>
+      <div className="relative z-10 w-full max-w-[360px] animate-in fade-in zoom-in duration-500">
+        <div className="bg-black/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2.5rem] border border-emerald-500/20 shadow-2xl">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform hover:scale-110">
+              <span className="text-black text-3xl font-black italic">D</span>
             </div>
-            <h1 className="text-xl font-black text-white tracking-widest uppercase text-center">
+            <h1 className="text-2xl font-black text-white tracking-[0.15em] uppercase text-center">
               NET<span className="text-emerald-500">WORK</span>
             </h1>
-            <p className="text-emerald-500/60 text-[10px] mt-2 font-bold tracking-widest">SISTEMA PRIVADO</p>
+            <p className="text-emerald-500/60 text-[9px] mt-2 font-bold tracking-[0.4em] uppercase">Sistema Privado</p>
           </div>
 
           <Auth
@@ -110,31 +108,33 @@ export default function LoginPage() {
                   colors: {
                     brand: '#10b981',
                     brandButtonText: 'black',
-                    inputBackground: 'rgba(255,255,255,0.02)',
-                    inputBorder: 'rgba(16,185,129,0.2)',
+                    inputBackground: 'rgba(255,255,255,0.03)',
+                    inputBorder: 'rgba(16,185,129,0.15)',
                     inputText: 'white',
+                    inputPlaceholder: '#4b5563',
                   },
-                  radii: { borderRadiusButton: '12px', inputBorderRadius: '12px' }
+                  radii: { borderRadiusButton: '16px', inputBorderRadius: '16px' },
+                  fonts: { bodyFontFamily: 'inherit', buttonFontFamily: 'inherit' }
                 },
               },
             }}
             theme="dark"
-            providers={[]} // Apenas e-mail e senha por enquanto
+            providers={[]}
             redirectTo={`${origin}/dashboard`}
             localization={{
               variables: {
                 sign_in: {
-                  email_label: 'E-mail',
-                  password_label: 'Senha',
-                  button_label: 'Acessar Sistema',
-                  loading_button_label: 'Autenticando...',
+                  email_label: 'Seu e-mail',
+                  password_label: 'Sua senha',
+                  button_label: 'ACESSAR SISTEMA',
+                  loading_button_label: 'AUTENTICANDO...',
                   link_text: 'Já tem uma conta? Entre',
                 },
                 sign_up: {
                   email_label: 'E-mail',
-                  password_label: 'Crie uma senha',
-                  button_label: 'Criar Minha Conta',
-                  loading_button_label: 'Registrando...',
+                  password_label: 'Crie uma senha forte',
+                  button_label: 'CRIAR MINHA CONTA',
+                  loading_button_label: 'REGISTRANDO...',
                   link_text: 'Não tem conta? Cadastre-se',
                 }
               }
@@ -142,11 +142,13 @@ export default function LoginPage() {
           />
         </div>
         
-        <p className="text-center text-emerald-500/30 text-[8px] mt-6 uppercase tracking-[0.4em] font-bold">
-          © 2026 DINIZ DEV // DATA ISOLATION ACTIVE
-        </p>
+        <div className="mt-8 text-center space-y-1">
+          <p className="text-emerald-500/30 text-[8px] uppercase tracking-[0.5em] font-bold">
+            © 2026 DINIZ DEV // DATA ISOLATION ACTIVE
+          </p>
+        </div>
       </div>
     </main>
   );
-    }
-        
+          }
+                  
