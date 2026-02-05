@@ -44,14 +44,14 @@ export default function GeradorPage() {
       const result = await response.json();
 
       if (response.ok) {
-        // 🔥 O PULO DO GATO: Salva no localStorage para a página de Visualizar ler
+        // Salva no localStorage para o preview ler imediatamente
         localStorage.setItem('last_generated_site', JSON.stringify(result));
         
         setProduto('');
         setWhatsapp('');
         await carregarSites();
         
-        // Redireciona para o preview que corrigimos antes
+        // Redireciona para o preview
         router.push('/visualizar'); 
       } else {
         alert("Erro na API: " + (result.error || "Tente novamente"));
@@ -91,11 +91,11 @@ export default function GeradorPage() {
 
         <div className="grid lg:grid-cols-3 gap-6 md:gap-10">
           {/* FORMULÁRIO */}
-          <div className="bg-white/5 p-6 md:p-8 rounded-[24px] md:rounded-[32px] border border-white/10 h-fit backdrop-blur-xl">
+          <div className="bg-white/5 p-6 md:p-8 rounded-[24px] md:rounded-[32px] border border-white/10 h-fit backdrop-blur-xl shadow-2xl">
             <h2 className="text-lg md:text-xl font-bold mb-6 italic text-center md:text-left">Novo Projeto</h2>
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] uppercase font-bold text-slate-500 ml-2 mb-2 block">O que você vende?</label>
+                <label className="text-[10px] uppercase font-bold text-slate-500 ml-2 mb-2 block tracking-widest">O que você vende?</label>
                 <input
                   className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-emerald-500 transition-all text-white text-sm"
                   placeholder="Ex: Curso de Manutenção de Celular"
@@ -104,7 +104,7 @@ export default function GeradorPage() {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-bold text-slate-500 ml-2 mb-2 block">WhatsApp de Vendas</label>
+                <label className="text-[10px] uppercase font-bold text-slate-500 ml-2 mb-2 block tracking-widest">WhatsApp de Vendas</label>
                 <input
                   className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-emerald-500 transition-all text-white text-sm"
                   placeholder="11999999999"
@@ -116,7 +116,7 @@ export default function GeradorPage() {
                 onClick={gerarKitVendas}
                 disabled={gerando}
                 className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.1em] text-xs transition-all mt-4 ${
-                  gerando ? 'bg-slate-800 text-slate-500' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 active:scale-95'
+                  gerando ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 active:scale-95'
                 }`}
               >
                 {gerando ? '🧠 CRIANDO ESTRUTURA...' : 'GERAR SITE AGORA'}
@@ -137,5 +137,46 @@ export default function GeradorPage() {
                 </div>
               ) : (
                 meusSites.map((site) => (
-                  <div key={site.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex flex-col sm:flex-row gap-4 justify-between items-center group hover:border-emerald-5
-  
+                  <div key={site.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex flex-col sm:flex-row gap-4 justify-between items-center group hover:border-emerald-500/30 transition-all">
+                    
+                    <div className="flex items-center gap-4 w-full sm:w-auto overflow-hidden">
+                      <div className="w-14 h-14 rounded-xl bg-slate-800 flex-shrink-0 overflow-hidden border border-white/10">
+                        {site.conteudo?.imagem ? (
+                          <img src={site.conteudo.imagem} className="w-full h-full object-cover" alt="Preview IA" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-600 uppercase">IA</div>
+                        )}
+                      </div>
+
+                      <div className="truncate w-full">
+                        <p className="text-xs font-black uppercase truncate text-white italic">
+                          {site.conteudo?.headline || 'Landing Page Sem Título'}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                            <a 
+                              href={`/s/${site.slug}`} 
+                              target="_blank" 
+                              className="text-[10px] text-emerald-500 font-bold hover:text-emerald-400 transition-colors uppercase tracking-widest"
+                            >
+                              Acessar Site ↗
+                            </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => deletarSite(site.id)}
+                      className="w-full sm:w-auto px-6 py-2 bg-transparent hover:bg-red-500/10 text-slate-500 hover:text-red-500 border border-white/5 hover:border-red-500/20 rounded-xl text-[9px] font-black uppercase transition-all"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+      }
