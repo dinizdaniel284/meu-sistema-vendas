@@ -14,9 +14,10 @@ export default function GeradorPage() {
   const [whatsapp, setWhatsapp] = useState('');
   const [gerando, setGerando] = useState(false);
   const [meusSites, setMeusSites] = useState<any[]>([]);
-  const [previewSite, setPreviewSite] = useState<any>(null); // Nova state para preview
+  const [preview, setPreview] = useState<any>(null);
   const router = useRouter();
 
+  // Carrega sites do usuário
   async function carregarSites() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -32,26 +33,42 @@ export default function GeradorPage() {
 
   useEffect(() => { carregarSites(); }, []);
 
+  // Atualiza preview conforme inputs
+  useEffect(() => {
+    setPreview({
+      headline: produto || 'Produto Incrível',
+      subheadline: 'Qualidade garantida',
+      whatsapp: whatsapp,
+      beneficios: ['Benefício 1', 'Benefício 2', 'Benefício 3'],
+      imagem: 'https://via.placeholder.com/800x400.png?text=Seu+Produto'
+    });
+  }, [produto, whatsapp]);
+
+  // Função gerar site
   async function gerarKitVendas() {
     if (gerando || !produto || !whatsapp) return;
 
     setGerando(true);
-    setPreviewSite(null); // Limpa preview antigo
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("Usuário não encontrado.");
+
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ produto, whatsapp, userId: user?.id }),
+        body: JSON.stringify({ produto, whatsapp, userId: user.id }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        setPreviewSite(result.site || result); // mostra preview imediatamente
+        // Salva o último site gerado para preview local
         localStorage.setItem('last_generated_site', JSON.stringify(result));
+        setProduto('');
+        setWhatsapp('');
         await carregarSites();
+        // Redireciona para o site final
+        router.push(`/s/${result.slug}`);
       } else {
         alert("Erro: " + (result.error || "Tente novamente"));
       }
@@ -60,101 +77,87 @@ export default function GeradorPage() {
     }
   }
 
-  async function deletarSite(id: string) {
-    if (!confirm("Deseja apagar este projeto?")) return;
-    await supabase.from('sites').delete().eq('id', id);
-    setMeusSites(prev => prev.filter(s => s.id !== id));
-  }
-
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10">
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10 flex flex-col gap-10">
       {gerando && <LoadingGerador />}
 
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* HEADER */}
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-lg font-black text-emerald-500">
-            DINIZ<span className="text-white">DEV</span>
-          </h1>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-[10px] bg-white/5 border border-white/10 px-3 py-2 rounded-lg uppercase"
-          >
-            Painel
-          </button>
-        </header>
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-lg font-black text-emerald-500">
+          DINIZ<span className="text-white">DEV</span>
+        </h1>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="text-[10px] bg-white/5 border border-white/10 px-3 py-2 rounded-lg uppercase"
+        >
+          Painel
+        </button>
+      </header>
 
+      <div className="grid lg:grid-cols-2 gap-8">
         {/* FORM */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-4">
-            <h2 className="text-sm font-bold mb-4">Novo Projeto</h2>
+        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+          <h2 className="text-sm font-bold mb-2">Novo Projeto</h2>
 
-            <input
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
-              placeholder="O que você vende?"
-              value={produto}
-              onChange={(e) => setProduto(e.target.value)}
-            />
+          <input
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
+            placeholder="O que você vende?"
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+          />
 
-            <input
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
-              placeholder="WhatsApp"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
+          <input
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
+            placeholder="WhatsApp"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+          />
 
-            <button
-              onClick={gerarKitVendas}
-              disabled={gerando}
-              className="w-full py-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 transition-all"
-            >
-              {gerando ? 'Gerando...' : 'Gerar Site'}
-            </button>
-          </div>
-
-          {/* PREVIEW */}
-          {previewSite && (
-            <div className="lg:col-span-2 space-y-4 bg-white/5 p-6 rounded-2xl border border-white/10">
-              <h2 className="font-bold text-lg mb-2">Pré-visualização</h2>
-
-              <img
-                src={previewSite.conteudo?.imagem || '/default-image.jpg'}
-                className="w-full h-56 md:h-80 object-cover rounded-xl"
-                alt="Preview"
-              />
-
-              <h3 className="text-xl font-black mt-2">
-                {previewSite.conteudo?.headline || "Produto Incrível"}
-              </h3>
-              <p className="text-slate-400">
-                {previewSite.conteudo?.subheadline || "Qualidade garantida"}
-              </p>
-
-              {Array.isArray(previewSite.conteudo?.beneficios) && (
-                <ul className="space-y-1 text-sm text-slate-300">
-                  {previewSite.conteudo.beneficios.map((b: string, i: number) => (
-                    <li key={i}>• {b}</li>
-                  ))}
-                </ul>
-              )}
-
-              <a
-                href={`/s/${previewSite.slug}`}
-                target="_blank"
-                className="block mt-4 text-center bg-emerald-500 text-black py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors"
-              >
-                Abrir Site Final
-              </a>
-            </div>
-          )}
+          <button
+            onClick={gerarKitVendas}
+            disabled={gerando || !produto || !whatsapp}
+            className="w-full py-4 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-emerald-400 transition-all"
+          >
+            {gerando ? 'Gerando...' : 'Gerar Site'}
+          </button>
         </div>
 
-        {/* LISTA DE SITES */}
+        {/* PREVIEW */}
+        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+          <h2 className="text-sm font-bold mb-4">Pré-visualização</h2>
+          {preview ? (
+            <div className="space-y-4">
+              <div className="h-40 md:h-52 bg-black/40 rounded-xl overflow-hidden">
+                <img src={preview.imagem} className="w-full h-full object-cover" alt="Preview" />
+              </div>
+              <h3 className="font-black text-lg md:text-2xl">{preview.headline}</h3>
+              <p className="text-slate-400 text-sm md:text-base">{preview.subheadline}</p>
+              <ul className="list-disc list-inside text-slate-300 text-sm">
+                {preview.beneficios.map((b: string, i: number) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+              {preview.whatsapp && (
+                <a
+                  href={`https://wa.me/${preview.whatsapp.replace(/\D/g, '')}?text=Olá! Quero saber mais sobre ${encodeURIComponent(preview.headline)}`}
+                  target="_blank"
+                  className="block text-center bg-emerald-500 hover:bg-emerald-400 text-black py-2 rounded-xl font-bold text-sm mt-2"
+                >
+                  Testar Link WhatsApp
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-sm">Preencha os campos para ver a pré-visualização.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de sites do usuário */}
+      <section className="mt-10">
+        <h2 className="text-sm font-bold mb-4">Meus Projetos</h2>
         <div className="space-y-3">
           {meusSites.length === 0 ? (
-            <div className="p-8 border border-dashed border-white/10 rounded-xl text-center text-slate-500 text-sm">
-              Nenhum projeto ainda.
-            </div>
+            <p className="text-slate-500 text-sm">Nenhum projeto ainda.</p>
           ) : (
             meusSites.map(site => (
               <div
@@ -162,29 +165,16 @@ export default function GeradorPage() {
                 className="bg-white/[0.03] border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row gap-3 justify-between"
               >
                 <div className="truncate">
-                  <p className="text-sm font-bold truncate">
-                    {site.conteudo?.headline || 'Sem título'}
-                  </p>
-                  <a
-                    href={`/s/${site.slug}`}
-                    target="_blank"
-                    className="text-[11px] text-emerald-400"
-                  >
+                  <p className="text-sm font-bold truncate">{site.conteudo?.headline || 'Sem título'}</p>
+                  <a href={`/s/${site.slug}`} target="_blank" className="text-[11px] text-emerald-400">
                     Abrir site ↗
                   </a>
                 </div>
-
-                <button
-                  onClick={() => deletarSite(site.id)}
-                  className="px-4 py-2 text-[11px] border border-red-500/30 text-red-400 rounded-lg"
-                >
-                  Excluir
-                </button>
               </div>
             ))
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
