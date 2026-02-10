@@ -11,8 +11,21 @@ export default function VisualizarPage() {
     setLoading(false);
   }, []);
 
-  if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Carregando...</div>;
-  if (!siteData) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Nada encontrado</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Carregando...
+      </div>
+    );
+  }
+
+  if (!siteData) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Nada encontrado
+      </div>
+    );
+  }
 
   const dados = siteData.site || siteData;
   const conteudo = dados.conteudo || dados;
@@ -24,11 +37,13 @@ export default function VisualizarPage() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-3xl mx-auto space-y-6">
-        <img
-          src={conteudo.imagem}
-          className="w-full h-56 md:h-80 object-cover rounded-xl"
-          alt="Banner"
-        />
+        {conteudo.imagem && (
+          <img
+            src={conteudo.imagem}
+            className="w-full h-56 md:h-80 object-cover rounded-xl"
+            alt="Banner"
+          />
+        )}
 
         <h1 className="text-2xl md:text-4xl font-black">
           {headline}
