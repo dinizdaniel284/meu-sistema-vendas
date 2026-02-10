@@ -1,67 +1,132 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import LoadingGerador from '@/app/components/LoadingGerador';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// 🔒 Proteção contra env inexistente
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('⚠️ Supabase env vars não encontradas. Cliente não será inicializado.');
+}
+
+const supabase = supabaseUrl && supabaseKey
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
+
+type Site = {
+  id: string;
+  slug: string;
+  conteudo?: {
+    headline?: string;
+  };
+};
 
 export default function GeradorPage() {
   const [produto, setProduto] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [gerando, setGerando] = useState(false);
-  const [meusSites, setMeusSites] = useState<any[]>([]);
+  const [meusSites, setMeusSites] = useState<Site[]>([]);
+  const [erro, setErro] = useState<string | null>(null);
+
   const router = useRouter();
 
   async function carregarSites() {
+    if (!supabase) return;
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('sites')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    setMeusSites(data || []);
+    if (error) {
+      console.error('Erro ao carregar sites:', error);
+      return;
+    }
+
+    setMeusSites((data || []) as Site[]);
   }
 
-  useEffect(() => { carregarSites(); }, []);
+  useEffect(() => {
+    carregarSites();
+  }, []);
 
   async function gerarKitVendas() {
-    if (gerando || !produto || !whatsapp) return;
+    if (gerando) return;
+
+    if (!produto.trim() || !whatsapp.trim()) {
+      alert('Preencha o produto e o WhatsApp.');
+      return;
+    }
+
+    if (!supabase) {
+      alert('Supabase não configurado corretamente.');
+      return;
+    }
 
     setGerando(true);
+    setErro(null);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert('Você precisa estar logado.');
+        return;
+      }
+
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ produto, whatsapp, userId: user?.id }),
+        body: JSON.stringify({
+          produto: produto.trim(),
+          whatsapp: whatsapp.trim(),
+          userId: user.id
+        }),
       });
 
       const result = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem('last_generated_site', JSON.stringify(result));
-        setProduto('');
-        setWhatsapp('');
-        await carregarSites();
-        router.push('/visualizar');
-      } else {
-        alert("Erro: " + (result.error || "Tente novamente"));
+      if (!response.ok) {
+        throw new Error(result?.error || 'Erro ao gerar site');
       }
+
+      localStorage.setItem('last_generated_site', JSON.stringify(result));
+      setProduto('');
+      setWhatsapp('');
+      await carregarSites();
+      router.push('/visualizar');
+
+    } catch (err: any) {
+      console.error(err);
+      setErro(err.message || 'Erro inesperado');
+      alert('Erro ao gerar o site: ' + (err.message || 'Tente novamente'));
     } finally {
       setGerando(false);
     }
   }
 
   async function deletarSite(id: string) {
-    if (!confirm("Deseja apagar este projeto?")) return;
-    await supabase.from('sites').delete().eq('id', id);
+    if (!supabase) return;
+
+    const ok = confirm('Deseja apagar este projeto?');
+    if (!ok) return;
+
+    const { error } = await supabase.from('sites').delete().eq('id', id);
+
+    if (error) {
+      alert('Erro ao deletar projeto');
+      console.error(error);
+      return;
+    }
+
     setMeusSites(prev => prev.filter(s => s.id !== id));
   }
 
@@ -105,10 +170,14 @@ export default function GeradorPage() {
               <button
                 onClick={gerarKitVendas}
                 disabled={gerando}
-                className="w-full py-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 transition-all"
+                className="w-full py-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 transition-all disabled:opacity-50"
               >
                 {gerando ? 'Gerando...' : 'Gerar Site'}
               </button>
+
+              {erro && (
+                <p className="text-red-400 text-xs">{erro}</p>
+              )}
             </div>
           </div>
 
