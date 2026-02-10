@@ -53,12 +53,14 @@ export default function VisualizarSlugPage() {
   const headline = conteudo.headline || "Produto Incrível";
   const subheadline = conteudo.subheadline || "Qualidade garantida";
   const beneficios = Array.isArray(conteudo.beneficios) ? conteudo.beneficios : [];
-  const imagem = conteudo.imagem || '/default-image.jpg'; // colocar imagem padrão se não existir
+  const imagem = conteudo.imagem || '/default-image.jpg';
+  const waNumber = conteudo.whatsapp || '';
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-10 flex flex-col items-center">
+    <main className="min-h-screen bg-black text-white flex flex-col items-center p-4 md:p-10 font-sans">
       {/* CONTAINER */}
       <div className="max-w-3xl w-full space-y-6 bg-white/5 p-6 rounded-2xl border border-white/10">
+
         {/* IMAGEM */}
         <div className="w-full h-56 md:h-80 overflow-hidden rounded-xl">
           <img
@@ -69,7 +71,7 @@ export default function VisualizarSlugPage() {
         </div>
 
         {/* HEADLINE */}
-        <h1 className="text-2xl md:text-4xl font-black text-center">
+        <h1 className="text-2xl md:text-4xl font-black text-center leading-snug">
           {headline}
         </h1>
 
@@ -87,15 +89,32 @@ export default function VisualizarSlugPage() {
           </ul>
         )}
 
-        {/* LINK FINAL */}
+        {/* CTA WhatsApp */}
+        {waNumber && (
+          <a
+            href={`https://wa.me/${waNumber.replace(/\D/g, '')}?text=Olá! Quero saber mais sobre ${encodeURIComponent(headline)}`}
+            target="_blank"
+            className="block text-center bg-emerald-500 text-black py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors"
+          >
+            Entrar em Contato
+          </a>
+        )}
+
+        {/* LINK direto para o site final */}
         <a
           href={`/s/${siteData.slug}`}
           target="_blank"
-          className="block text-center bg-emerald-500 text-black py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors"
+          className="block text-center text-emerald-400 underline mt-2 text-sm"
         >
-          Abrir Site Gerado
+          Visualizar link final
         </a>
+
       </div>
-    </div>
+
+      {/* FOOTER */}
+      <footer className="py-8 text-center opacity-30 text-[10px]">
+        Powered by <span className="text-emerald-500">DinizDev IA</span>
+      </footer>
+    </main>
   );
 }
