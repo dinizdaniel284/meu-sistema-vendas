@@ -1,13 +1,20 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Cria o cliente só se tiver env
+let supabase: SupabaseClient | null = null;
+
+if (supabaseUrl && supabaseAnon) {
+  supabase = createClient(supabaseUrl, supabaseAnon);
+} else {
+  console.warn('⚠️ Supabase env vars não encontradas. Dashboard sem backend.');
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -17,6 +24,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const checkUserAndFetchSites = async () => {
+      if (!supabase) {
+        // Sem supabase configurado, manda pro login ou home
+        router.push('/login');
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
@@ -34,6 +47,7 @@ export default function Dashboard() {
           setMeusSites(data);
         }
       }
+
       setLoading(false);
     };
 
@@ -68,7 +82,9 @@ export default function Dashboard() {
 
         <button
           onClick={async () => {
-            await supabase.auth.signOut();
+            if (supabase) {
+              await supabase.auth.signOut();
+            }
             router.push('/login');
           }}
           className="px-3 sm:px-4 py-2 border border-red-500/20 text-red-500/70 rounded-xl text-[9px] sm:text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all tracking-widest"
@@ -84,7 +100,7 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
               Bem-vindo, <br />
               <span className="text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] break-all">
-                {user?.email?.split('@')[0]}
+                {user?.email?.split('@')[0] || 'Usuário'}
               </span>
             </h1>
             <p className="text-slate-500 font-medium italic mt-3 sm:mt-4 text-sm sm:text-lg">
