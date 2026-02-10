@@ -1,68 +1,99 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useParams } from 'next/navigation';
 
-export default function VisualizarPage() {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function VisualizarSlugPage() {
+  const params = useParams();
+  const slug = params.slug;
   const [siteData, setSiteData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data = localStorage.getItem('last_generated_site');
-    if (data) setSiteData(JSON.parse(data));
-    setLoading(false);
-  }, []);
+    if (!slug) return;
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        Carregando...
-      </div>
-    );
+    const fetchSite = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('slug', slug)
+        .single();
 
-  if (!siteData)
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        Nada encontrado
-      </div>
-    );
+      if (error) {
+        console.error(error);
+        setSiteData(null);
+      } else {
+        setSiteData(data);
+      }
+      setLoading(false);
+    };
 
-  const dados = siteData.site || siteData;
-  const conteudo = dados.conteudo || dados;
+    fetchSite();
+  }, [slug]);
 
-  const headline = conteudo.headline || 'Produto Incrível';
-  const subheadline = conteudo.subheadline || 'Qualidade garantida';
-  const beneficios: string[] = Array.isArray(conteudo.beneficios) ? conteudo.beneficios : [];
+  if (loading) return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      Carregando...
+    </div>
+  );
+
+  if (!siteData) return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      Site não encontrado
+    </div>
+  );
+
+  const conteudo = siteData.conteudo || {};
+  const headline = conteudo.headline || "Produto Incrível";
+  const subheadline = conteudo.subheadline || "Qualidade garantida";
+  const beneficios = Array.isArray(conteudo.beneficios) ? conteudo.beneficios : [];
+  const imagem = conteudo.imagem || '/default-image.jpg'; // colocar imagem padrão se não existir
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {conteudo.imagem && (
+    <div className="min-h-screen bg-black text-white p-4 md:p-10 flex flex-col items-center">
+      {/* CONTAINER */}
+      <div className="max-w-3xl w-full space-y-6 bg-white/5 p-6 rounded-2xl border border-white/10">
+        {/* IMAGEM */}
+        <div className="w-full h-56 md:h-80 overflow-hidden rounded-xl">
           <img
-            src={conteudo.imagem}
-            className="w-full h-56 md:h-80 object-cover rounded-xl"
+            src={imagem}
             alt="Banner"
+            className="w-full h-full object-cover"
           />
-        )}
+        </div>
 
-        <h1 className="text-2xl md:text-4xl font-black">{headline}</h1>
+        {/* HEADLINE */}
+        <h1 className="text-2xl md:text-4xl font-black text-center">
+          {headline}
+        </h1>
 
-        <p className="text-slate-400 text-sm md:text-base">{subheadline}</p>
+        {/* SUBHEADLINE */}
+        <p className="text-slate-400 text-sm md:text-base text-center">
+          {subheadline}
+        </p>
 
+        {/* BENEFÍCIOS */}
         {beneficios.length > 0 && (
-          <ul className="space-y-2">
+          <ul className="space-y-2 text-sm text-slate-300">
             {beneficios.map((b: string, i: number) => (
-              <li key={i} className="text-sm text-slate-300">
-                • {b}
-              </li>
+              <li key={i}>• {b}</li>
             ))}
           </ul>
         )}
 
+        {/* LINK FINAL */}
         <a
-          href={`/s/${dados.slug}`}
+          href={`/s/${siteData.slug}`}
           target="_blank"
-          className="block text-center bg-white text-black py-3 rounded-lg font-bold"
+          className="block text-center bg-emerald-500 text-black py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors"
         >
-          Publicar Site
+          Abrir Site Gerado
         </a>
       </div>
     </div>
