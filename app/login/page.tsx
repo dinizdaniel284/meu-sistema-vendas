@@ -66,7 +66,7 @@ export default function LoginPage() {
         enable: true,
         speed: isMobile ? 1.2 : 2,
         direction: "none",
-        outModes: "out", // ✅ CORRIGIDO AQUI
+        outModes: "out",
       },
       number: { 
         density: { enable: true, area: 800 }, 
@@ -81,7 +81,6 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a] p-4">
-      {/* Glow suave no fundo */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)] pointer-events-none" />
 
       {particlesReady && (
@@ -90,7 +89,6 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[360px] animate-in fade-in zoom-in duration-500">
         <div className="bg-black/60 backdrop-blur-3xl p-6 sm:p-7 md:p-8 rounded-[2.5rem] border border-emerald-500/20 shadow-2xl">
-          
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform hover:scale-110">
               <span className="text-black text-3xl font-black italic">D</span>
