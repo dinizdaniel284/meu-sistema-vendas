@@ -1,4 +1,5 @@
 'use client';
+
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { createClient } from '@supabase/supabase-js';
@@ -14,7 +15,7 @@ const supabase = createClient(
 
 export default function LoginPage() {
   const [origin, setOrigin] = useState('');
-  const [init, setInit] = useState(false);
+  const [particlesReady, setParticlesReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
 
@@ -27,7 +28,7 @@ export default function LoginPage() {
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
     }).then(() => {
-      setInit(true);
+      setParticlesReady(true);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -39,7 +40,7 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const particlesOptions: any = useMemo(() => ({
+  const particlesOptions = useMemo(() => ({
     background: { color: { value: "#02040a" } },
     fpsLimit: 60,
     interactivity: {
@@ -69,7 +70,7 @@ export default function LoginPage() {
       },
       number: { 
         density: { enable: true, area: 800 }, 
-        value: isMobile ? 50 : 150 // Reduzido para performance mobile
+        value: isMobile ? 50 : 120
       },
       opacity: { value: 0.5 },
       shape: { type: "circle" },
@@ -81,22 +82,27 @@ export default function LoginPage() {
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#02040a] p-4">
       {/* Glow suave no fundo */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.05)_0%,_transparent_50%)] pointer-events-none" />
 
-      {init && (
+      {particlesReady && (
         <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />
       )}
 
       <div className="relative z-10 w-full max-w-[360px] animate-in fade-in zoom-in duration-500">
-        <div className="bg-black/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2.5rem] border border-emerald-500/20 shadow-2xl">
+        <div className="bg-black/60 backdrop-blur-3xl p-6 sm:p-7 md:p-8 rounded-[2.5rem] border border-emerald-500/20 shadow-2xl">
+          
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform hover:scale-110">
               <span className="text-black text-3xl font-black italic">D</span>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-[0.15em] uppercase text-center">
+
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-[0.15em] uppercase text-center">
               NET<span className="text-emerald-500">WORK</span>
             </h1>
-            <p className="text-emerald-500/60 text-[9px] mt-2 font-bold tracking-[0.4em] uppercase">Sistema Privado</p>
+
+            <p className="text-emerald-500/60 text-[9px] mt-2 font-bold tracking-[0.4em] uppercase">
+              Sistema Privado
+            </p>
           </div>
 
           <Auth
@@ -113,14 +119,20 @@ export default function LoginPage() {
                     inputText: 'white',
                     inputPlaceholder: '#4b5563',
                   },
-                  radii: { borderRadiusButton: '16px', inputBorderRadius: '16px' },
-                  fonts: { bodyFontFamily: 'inherit', buttonFontFamily: 'inherit' }
+                  radii: { 
+                    borderRadiusButton: '16px', 
+                    inputBorderRadius: '16px' 
+                  },
+                  fonts: { 
+                    bodyFontFamily: 'inherit', 
+                    buttonFontFamily: 'inherit' 
+                  }
                 },
               },
             }}
             theme="dark"
             providers={[]}
-            redirectTo={`${origin}/dashboard`}
+            redirectTo={origin ? `${origin}/dashboard` : undefined}
             localization={{
               variables: {
                 sign_in: {
@@ -142,13 +154,12 @@ export default function LoginPage() {
           />
         </div>
         
-        <div className="mt-8 text-center space-y-1">
-          <p className="text-emerald-500/30 text-[8px] uppercase tracking-[0.5em] font-bold">
+        <div className="mt-8 text-center">
+          <p className="text-emerald-500/30 text-[8px] uppercase tracking-[0.4em] font-bold">
             © 2026 DINIZ DEV // DATA ISOLATION ACTIVE
           </p>
         </div>
       </div>
     </main>
   );
-          }
-                  
+}
