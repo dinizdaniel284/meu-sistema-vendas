@@ -40,7 +40,7 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const particlesOptions = useMemo(() => ({
+  const particlesOptions: any = useMemo(() => ({
     background: { color: { value: "#02040a" } },
     fpsLimit: 60,
     interactivity: {
@@ -65,8 +65,8 @@ export default function LoginPage() {
       move: {
         enable: true,
         speed: isMobile ? 1.2 : 2,
-        direction: "none" as const,
-        outModes: { default: "out" },
+        direction: "none",
+        outModes: "out", // ✅ CORRIGIDO AQUI
       },
       number: { 
         density: { enable: true, area: 800 }, 
