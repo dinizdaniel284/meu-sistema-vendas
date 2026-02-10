@@ -12,12 +12,11 @@ const supabase = createClient(
 export default function GeradorPage() {
   const [produto, setProduto] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
-  const [preview, setPreview] = useState<any>(null);
   const [gerando, setGerando] = useState(false);
   const [meusSites, setMeusSites] = useState<any[]>([]);
+  const [previewSite, setPreviewSite] = useState<any>(null); // Nova state para preview
   const router = useRouter();
 
-  // Carrega os sites do usuário
   async function carregarSites() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -31,44 +30,28 @@ export default function GeradorPage() {
     setMeusSites(data || []);
   }
 
-  useEffect(() => {
-    carregarSites();
-  }, []);
-
-  // Atualiza preview dinamicamente
-  useEffect(() => {
-    if (!produto && !whatsapp) return;
-    setPreview({
-      headline: produto || 'Produto Incrível',
-      subheadline: `Entre em contato: ${whatsapp || 'WhatsApp'}`,
-      beneficios: ['Qualidade garantida', 'Entrega rápida', 'Atendimento 24h'],
-      slug: 'novo-site',
-    });
-  }, [produto, whatsapp]);
+  useEffect(() => { carregarSites(); }, []);
 
   async function gerarKitVendas() {
     if (gerando || !produto || !whatsapp) return;
 
     setGerando(true);
+    setPreviewSite(null); // Limpa preview antigo
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const response = await fetch('/api/gerar-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ produto, whatsapp, userId: user.id }),
+        body: JSON.stringify({ produto, whatsapp, userId: user?.id }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
+        setPreviewSite(result.site || result); // mostra preview imediatamente
         localStorage.setItem('last_generated_site', JSON.stringify(result));
-        setProduto('');
-        setWhatsapp('');
         await carregarSites();
-        // Redireciona passando o site gerado
-        router.push(`/visualizar`);
       } else {
         alert("Erro: " + (result.error || "Tente novamente"));
       }
@@ -87,7 +70,7 @@ export default function GeradorPage() {
     <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10">
       {gerando && <LoadingGerador />}
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto space-y-10">
         {/* HEADER */}
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-lg font-black text-emerald-500">
@@ -101,10 +84,10 @@ export default function GeradorPage() {
           </button>
         </header>
 
+        {/* FORM */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* FORM */}
-          <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-4">
-            <h2 className="text-sm font-bold mb-2">Novo Projeto</h2>
+          <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-4">
+            <h2 className="text-sm font-bold mb-4">Novo Projeto</h2>
 
             <input
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
@@ -122,64 +105,84 @@ export default function GeradorPage() {
 
             <button
               onClick={gerarKitVendas}
-              disabled={gerando || !produto || !whatsapp}
-              className="w-full py-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 transition-all disabled:opacity-50"
+              disabled={gerando}
+              className="w-full py-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 transition-all"
             >
               {gerando ? 'Gerando...' : 'Gerar Site'}
             </button>
-
-            {/* PREVIEW */}
-            {preview && (
-              <div className="bg-white/5 p-4 rounded-2xl mt-4 border border-white/10">
-                <h3 className="font-bold text-base text-emerald-400 mb-1 truncate">{preview.headline}</h3>
-                <p className="text-sm text-slate-400 mb-2 truncate">{preview.subheadline}</p>
-                <p className="text-xs text-slate-500">Pré-visualização do site</p>
-                <a
-                  href={`/s/${preview.slug}`}
-                  target="_blank"
-                  className="mt-2 inline-block text-center bg-emerald-500 text-black py-2 px-4 rounded-lg text-xs font-bold hover:bg-emerald-400"
-                >
-                  Abrir Preview
-                </a>
-              </div>
-            )}
           </div>
 
-          {/* LISTA DE SITES */}
-          <div className="lg:col-span-2 space-y-3">
-            {meusSites.length === 0 ? (
-              <div className="p-8 border border-dashed border-white/10 rounded-xl text-center text-slate-500 text-sm">
-                Nenhum projeto ainda.
-              </div>
-            ) : (
-              meusSites.map(site => (
-                <div
-                  key={site.id}
-                  className="bg-white/[0.03] border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row gap-3 justify-between"
-                >
-                  <div className="truncate">
-                    <p className="text-sm font-bold truncate">
-                      {site.conteudo?.headline || 'Sem título'}
-                    </p>
-                    <a
-                      href={`/s/${site.slug}`}
-                      target="_blank"
-                      className="text-[11px] text-emerald-400"
-                    >
-                      Abrir site ↗
-                    </a>
-                  </div>
+          {/* PREVIEW */}
+          {previewSite && (
+            <div className="lg:col-span-2 space-y-4 bg-white/5 p-6 rounded-2xl border border-white/10">
+              <h2 className="font-bold text-lg mb-2">Pré-visualização</h2>
 
-                  <button
-                    onClick={() => deletarSite(site.id)}
-                    className="px-4 py-2 text-[11px] border border-red-500/30 text-red-400 rounded-lg"
+              <img
+                src={previewSite.conteudo?.imagem || '/default-image.jpg'}
+                className="w-full h-56 md:h-80 object-cover rounded-xl"
+                alt="Preview"
+              />
+
+              <h3 className="text-xl font-black mt-2">
+                {previewSite.conteudo?.headline || "Produto Incrível"}
+              </h3>
+              <p className="text-slate-400">
+                {previewSite.conteudo?.subheadline || "Qualidade garantida"}
+              </p>
+
+              {Array.isArray(previewSite.conteudo?.beneficios) && (
+                <ul className="space-y-1 text-sm text-slate-300">
+                  {previewSite.conteudo.beneficios.map((b: string, i: number) => (
+                    <li key={i}>• {b}</li>
+                  ))}
+                </ul>
+              )}
+
+              <a
+                href={`/s/${previewSite.slug}`}
+                target="_blank"
+                className="block mt-4 text-center bg-emerald-500 text-black py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors"
+              >
+                Abrir Site Final
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* LISTA DE SITES */}
+        <div className="space-y-3">
+          {meusSites.length === 0 ? (
+            <div className="p-8 border border-dashed border-white/10 rounded-xl text-center text-slate-500 text-sm">
+              Nenhum projeto ainda.
+            </div>
+          ) : (
+            meusSites.map(site => (
+              <div
+                key={site.id}
+                className="bg-white/[0.03] border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row gap-3 justify-between"
+              >
+                <div className="truncate">
+                  <p className="text-sm font-bold truncate">
+                    {site.conteudo?.headline || 'Sem título'}
+                  </p>
+                  <a
+                    href={`/s/${site.slug}`}
+                    target="_blank"
+                    className="text-[11px] text-emerald-400"
                   >
-                    Excluir
-                  </button>
+                    Abrir site ↗
+                  </a>
                 </div>
-              ))
-            )}
-          </div>
+
+                <button
+                  onClick={() => deletarSite(site.id)}
+                  className="px-4 py-2 text-[11px] border border-red-500/30 text-red-400 rounded-lg"
+                >
+                  Excluir
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
