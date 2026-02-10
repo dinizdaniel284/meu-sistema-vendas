@@ -1,41 +1,51 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { useParams } from 'next/navigation';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function SitePage({ params }: { params: { slug: string } }) {
+export default function SitePage() {
+  const params = useParams();
   const [site, setSite] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchSite() {
-      const { data } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('slug', params.slug)
-        .single();
-      setSite(data);
+      try {
+        const { data } = await supabase
+          .from('sites')
+          .select('*')
+          .eq('slug', params.slug)
+          .single();
+
+        setSite(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchSite();
   }, [params.slug]);
 
-  if (!site) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-        <p className="mt-4 text-emerald-500 text-xs font-black uppercase tracking-widest animate-pulse">
-          Carregando Experiência...
-        </p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center text-emerald-500 font-black">
+      Carregando site...
+    </div>
+  );
+
+  if (!site) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center text-red-500 font-black">
+      Site não encontrado
+    </div>
+  );
 
   const { conteudo } = site || {};
   const waNumber = conteudo?.whatsapp?.replace(/\D/g, '') || '';
-
   const beneficiosRaw = conteudo?.beneficios || [];
   const beneficios = Array.isArray(beneficiosRaw)
     ? beneficiosRaw
@@ -44,17 +54,13 @@ export default function SitePage({ params }: { params: { slug: string } }) {
       : [];
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white overflow-x-hidden font-sans">
+    <main className="min-h-screen bg-[#020617] text-white font-sans overflow-x-hidden">
 
       {/* HERO */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-center px-4 py-16 text-center overflow-hidden">
+      <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 text-center overflow-hidden">
         {conteudo?.imagem && (
           <div className="absolute inset-0 z-0">
-            <img
-              src={conteudo.imagem}
-              className="w-full h-full object-cover scale-105"
-              alt="Background"
-            />
+            <img src={conteudo.imagem} alt="Background" className="w-full h-full object-cover scale-105" />
             <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/50 via-[#020617]/90 to-[#020617]" />
           </div>
         )}
@@ -73,48 +79,25 @@ export default function SitePage({ params }: { params: { slug: string } }) {
           <p className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
             {conteudo?.subheadline || 'A melhor solução para você.'}
           </p>
-
-          <div className="pt-6 animate-bounce opacity-30">
-            <div className="w-1 h-10 bg-gradient-to-b from-emerald-500 to-transparent mx-auto rounded-full" />
-          </div>
         </div>
       </section>
 
-      {/* CONTEÚDO */}
-      <section className="py-16 px-4 max-w-4xl mx-auto border-t border-white/5">
-        <div className="space-y-12">
-          <div className="space-y-6">
-            <h2 className="text-emerald-500 font-black text-[10px] tracking-[0.4em] uppercase flex items-center gap-4">
-              <span className="w-8 h-[1px] bg-emerald-500" /> A Proposta
-            </h2>
-
-            <div className="space-y-5 text-slate-300 leading-relaxed text-sm sm:text-base md:text-lg">
-              {conteudo?.guia_completo
-                ? conteudo.guia_completo.split('\n').map((p: string, i: number) => (
-                    <p key={i}>{p}</p>
-                  ))
-                : <p className="italic text-slate-500">Descrição em geração...</p>
-              }
-            </div>
+      {/* BENEFÍCIOS */}
+      {beneficios.length > 0 && (
+        <section className="py-12 px-4 max-w-4xl mx-auto">
+          <div className="bg-white/5 border border-white/10 p-6 sm:p-8 rounded-3xl space-y-4">
+            <h2 className="text-emerald-500 font-black uppercase text-sm tracking-[0.4em]">Por que escolher</h2>
+            <ul className="grid gap-3">
+              {beneficios.map((b: string, i: number) => (
+                <li key={i} className="flex items-start gap-3 text-slate-300 text-sm">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full mt-1" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {beneficios.length > 0 && (
-            <div className="bg-white/5 border border-white/10 p-6 sm:p-8 rounded-3xl">
-              <h3 className="text-white font-black uppercase italic mb-6 text-sm">
-                Por que escolher:
-              </h3>
-              <ul className="grid gap-4">
-                {beneficios.map((b: string, i: number) => (
-                  <li key={i} className="flex items-start gap-3 text-slate-300 text-sm">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full mt-2" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA FIXO */}
       <div className="fixed bottom-4 left-0 w-full px-4 z-50 md:static md:pb-20">
@@ -136,6 +119,7 @@ export default function SitePage({ params }: { params: { slug: string } }) {
           Powered by <span className="text-emerald-500">DinizDev IA</span>
         </p>
       </footer>
+
     </main>
   );
 }
