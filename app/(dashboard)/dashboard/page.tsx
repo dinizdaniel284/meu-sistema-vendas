@@ -23,7 +23,7 @@ export default function Dashboard() {
         router.push('/login');
       } else {
         setUser(session.user);
-        
+
         const { data, error } = await supabase
           .from('sites')
           .select('*')
@@ -44,10 +44,10 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-[#020617] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="text-emerald-500 animate-pulse font-black text-3xl tracking-tighter">
+          <div className="text-2xl sm:text-3xl text-emerald-500 animate-pulse font-black tracking-tighter">
             DINIZ<span className="text-white">DEV</span>
           </div>
-          <div className="w-24 h-1 bg-white/5 overflow-hidden rounded-full">
+          <div className="w-20 sm:w-24 h-1 bg-white/5 overflow-hidden rounded-full">
             <div className="w-full h-full bg-emerald-500 animate-pulse" />
           </div>
         </div>
@@ -57,9 +57,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-emerald-500/30">
-      {/* NAVBAR GLASS */}
-      <nav className="backdrop-blur-md bg-black/20 border-b border-white/5 px-8 py-5 flex justify-between items-center sticky top-0 z-50">
-        <div className="text-2xl font-black tracking-tighter">
+      {/* NAVBAR */}
+      <nav className="backdrop-blur-md bg-black/20 border-b border-white/5 px-4 sm:px-8 py-4 sm:py-5 flex justify-between items-center sticky top-0 z-50">
+        <div className="text-lg sm:text-2xl font-black tracking-tighter">
           DINIZ<span className="text-emerald-500">DEV</span>
           <span className="hidden sm:inline-block text-[10px] ml-3 text-slate-500 border border-white/10 px-2 py-1 rounded-md uppercase tracking-widest">
             Elite System
@@ -71,30 +71,30 @@ export default function Dashboard() {
             await supabase.auth.signOut();
             router.push('/login');
           }}
-          className="px-4 py-2 border border-red-500/20 text-red-500/70 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all tracking-widest"
+          className="px-3 sm:px-4 py-2 border border-red-500/20 text-red-500/70 rounded-xl text-[9px] sm:text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all tracking-widest"
         >
           Sair
         </button>
       </nav>
 
-      <main className="max-w-7xl mx-auto p-6 md:p-12 animate-in fade-in duration-700">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-12 animate-in fade-in duration-700">
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 sm:mb-12 md:mb-16 gap-6 sm:gap-8">
           <div>
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
               Bem-vindo, <br />
-              <span className="text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              <span className="text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] break-all">
                 {user?.email?.split('@')[0]}
               </span>
             </h1>
-            <p className="text-slate-500 font-medium italic mt-4 text-lg">
+            <p className="text-slate-500 font-medium italic mt-3 sm:mt-4 text-sm sm:text-lg">
               Gerencie seus <span className="text-white">{meusSites.length}</span> projetos ativos.
             </p>
           </div>
-          
+
           <button
             onClick={() => router.push('/dashboard/gerador')}
-            className="group relative px-10 py-6 bg-emerald-600 rounded-[24px] font-black text-lg uppercase tracking-tighter overflow-hidden transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(16,185,129,0.2)]"
+            className="group relative w-full md:w-auto px-6 sm:px-10 py-4 sm:py-6 bg-emerald-600 rounded-2xl sm:rounded-[24px] font-black text-sm sm:text-lg uppercase tracking-tighter overflow-hidden transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(16,185,129,0.2)] text-center"
           >
             <span className="relative z-10">+ Criar Novo Projeto</span>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
@@ -102,54 +102,56 @@ export default function Dashboard() {
         </div>
 
         {/* GRID DE SITES */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
           {meusSites.length > 0 ? meusSites.map((site) => (
-            <div 
-              key={site.id} 
-              className="bg-white/[0.03] border border-white/5 group rounded-[40px] overflow-hidden hover:border-emerald-500/50 transition-all duration-500 shadow-2xl flex flex-col h-full hover:-translate-y-2"
+            <div
+              key={site.id}
+              className="bg-white/[0.03] border border-white/5 group rounded-2xl sm:rounded-[40px] overflow-hidden hover:border-emerald-500/50 transition-all duration-500 shadow-2xl flex flex-col h-full hover:-translate-y-1 sm:hover:-translate-y-2"
             >
               {/* MINIATURA */}
-              <div className="h-52 bg-black/40 relative overflow-hidden">
+              <div className="h-40 sm:h-52 bg-black/40 relative overflow-hidden">
                 {site.conteudo?.imagem ? (
-                  <img 
-                    src={site.conteudo.imagem} 
-                    className="w-full h-full object-cover opacity-40 group-hover:opacity-70 group-hover:scale-110 transition-all duration-700" 
-                    alt="Preview" 
+                  <img
+                    src={site.conteudo.imagem}
+                    className="w-full h-full object-cover opacity-40 group-hover:opacity-70 group-hover:scale-110 transition-all duration-700"
+                    alt="Preview"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-slate-700 font-black uppercase text-[10px]">No Image</div>
+                  <div className="flex items-center justify-center h-full text-slate-700 font-black uppercase text-[10px]">
+                    No Image
+                  </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/20 to-transparent" />
-                <div className="absolute top-5 left-5">
-                  <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-3 py-1 rounded-full border border-emerald-500/20 uppercase tracking-[0.2em] backdrop-blur-md">
+                <div className="absolute top-3 sm:top-5 left-3 sm:left-5">
+                  <span className="bg-emerald-500/10 text-emerald-400 text-[8px] sm:text-[9px] font-bold px-3 py-1 rounded-full border border-emerald-500/20 uppercase tracking-[0.2em] backdrop-blur-md">
                     Ativo
                   </span>
                 </div>
               </div>
 
               {/* INFO */}
-              <div className="p-8 flex flex-col flex-grow">
-                <h3 className="font-black text-xl mb-2 truncate uppercase italic tracking-tighter group-hover:text-emerald-400 transition-colors">
+              <div className="p-4 sm:p-8 flex flex-col flex-grow">
+                <h3 className="font-black text-base sm:text-xl mb-2 truncate uppercase italic tracking-tighter group-hover:text-emerald-400 transition-colors">
                   {site.conteudo?.headline || site.slug}
                 </h3>
-                <div className="flex items-center gap-2 mb-8">
-                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                   <p className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">
-                     /s/{site.slug}
-                   </p>
+                <div className="flex items-center gap-2 mb-4 sm:mb-8">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-slate-500 text-[9px] sm:text-[10px] font-mono tracking-widest uppercase truncate">
+                    /s/{site.slug}
+                  </p>
                 </div>
-                
+
                 <div className="mt-auto flex gap-3">
-                  <Link 
-                    href={`/s/${site.slug}`} 
+                  <Link
+                    href={`/s/${site.slug}`}
                     target="_blank"
-                    className="flex-1 text-center text-[11px] font-black uppercase bg-white text-black py-4 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all tracking-tighter"
+                    className="flex-1 text-center text-[10px] sm:text-[11px] font-black uppercase bg-white text-black py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-emerald-500 hover:text-white transition-all tracking-tighter"
                   >
                     Abrir Site
                   </Link>
-                  <button 
+                  <button
                     onClick={() => router.push(`/dashboard/gerador?edit=${site.id}`)}
-                    className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-sm group-hover:rotate-12 duration-300"
+                    className="px-4 sm:px-6 py-3 sm:py-4 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl hover:bg-white/10 transition-all text-sm"
                   >
                     ⚙️
                   </button>
@@ -157,12 +159,14 @@ export default function Dashboard() {
               </div>
             </div>
           )) : (
-            <div className="col-span-full py-24 text-center border-2 border-dashed border-white/5 rounded-[50px]">
-              <div className="text-5xl mb-4 opacity-20 grayscale">🚀</div>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Sua lista de projetos está vazia.</p>
-              <button 
+            <div className="col-span-full py-16 sm:py-24 text-center border-2 border-dashed border-white/5 rounded-3xl sm:rounded-[50px]">
+              <div className="text-4xl sm:text-5xl mb-4 opacity-20 grayscale">🚀</div>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs">
+                Sua lista de projetos está vazia.
+              </p>
+              <button
                 onClick={() => router.push('/dashboard/gerador')}
-                className="mt-4 text-emerald-500 font-black uppercase tracking-widest text-[10px] hover:underline"
+                className="mt-4 text-emerald-500 font-black uppercase tracking-widest text-[9px] sm:text-[10px] hover:underline"
               >
                 Criar meu primeiro site agora
               </button>
@@ -172,5 +176,4 @@ export default function Dashboard() {
       </main>
     </div>
   );
-              }
-      
+}
