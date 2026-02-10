@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import LoadingGerador from '@/app/components/LoadingGerador';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,15 +12,23 @@ const supabase = createClient(
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [produto, setProduto] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [gerando, setGerando] = useState(false);
   const [meusSites, setMeusSites] = useState<any[]>([]);
 
+  // Carrega usuário e sites
   useEffect(() => {
-    const checkUserAndFetchSites = async () => {
+    const carregarUserESites = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return router.push('/login');
+      if (!session) {
+        router.push('/login');
+        return;
+      }
 
       setUser(session.user);
+
       const { data, error } = await supabase
         .from('sites')
         .select('*')
@@ -28,42 +36,150 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false });
 
       if (!error && data) setMeusSites(data);
-      setLoading(false);
+      setLoadingUser(false);
     };
 
-    checkUserAndFetchSites();
+    carregarUserESites();
   }, [router]);
 
-  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center">Carregando...</div>;
+  // Gerar novo site
+  async function gerarSite() {
+    if (gerando || !produto || !whatsapp) return;
+    setGerando(true);
+
+    try {
+      const response = await fetch('/api/gerar-site', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          produto,
+          whatsapp,
+          userId: user?.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('last_generated_site', JSON.stringify(result));
+        setProduto('');
+        setWhatsapp('');
+        // Atualiza lista de sites
+        const { data } = await supabase
+          .from('sites')
+          .select('*')
+          .eq('user_id', user?.id)
+          .order('created_at', { ascending: false });
+        setMeusSites(data || []);
+      } else {
+        alert("Erro: " + (result.error || "Tente novamente"));
+      }
+    } finally {
+      setGerando(false);
+    }
+  }
+
+  async function deletarSite(id: string) {
+    if (!confirm("Deseja apagar este projeto?")) return;
+    await supabase.from('sites').delete().eq('id', id);
+    setMeusSites(prev => prev.filter(s => s.id !== id));
+  }
+
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="text-2xl text-emerald-500 animate-pulse font-black">
+          Carregando Dashboard...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
-      <nav className="backdrop-blur-md bg-black/20 border-b border-white/5 px-4 sm:px-8 py-4 sm:py-5 flex justify-between items-center sticky top-0 z-50">
-        <div className="text-lg sm:text-2xl font-black tracking-tighter">
-          DINIZ<span className="text-emerald-500">DEV</span>
-        </div>
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10">
+      {gerando && <LoadingGerador />}
+
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-lg font-black text-emerald-500">
+          DINIZ<span className="text-white">DEV</span>
+        </h1>
         <button
           onClick={async () => {
             await supabase.auth.signOut();
             router.push('/login');
           }}
-          className="px-3 sm:px-4 py-2 border border-red-500/20 text-red-500/70 rounded-xl text-[9px] sm:text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all"
+          className="text-[10px] bg-white/5 border border-white/10 px-3 py-2 rounded-lg uppercase"
         >
           Sair
         </button>
-      </nav>
+      </header>
 
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-12">
-        <h1 className="text-3xl sm:text-5xl font-black mb-6">Bem-vindo, <span className="text-emerald-500">{user.email.split('@')[0]}</span></h1>
-        {/* Lista de sites */}
-        {meusSites.length === 0 ? (
-          <p className="text-slate-500">Nenhum projeto criado ainda.</p>
-        ) : (
-          meusSites.map(site => (
-            <div key={site.id}>{site.conteudo?.headline || site.slug}</div>
-          ))
-        )}
-      </main>
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* FORMULÁRIO DE GERAÇÃO */}
+        <div className="bg-white/5 p-5 rounded-2xl border border-white/10">
+          <h2 className="text-sm font-bold mb-4">Gerar Novo Site</h2>
+
+          <div className="space-y-4">
+            <input
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
+              placeholder="O que você vende?"
+              value={produto}
+              onChange={(e) => setProduto(e.target.value)}
+            />
+
+            <input
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm"
+              placeholder="WhatsApp"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+
+            <button
+              onClick={gerarSite}
+              disabled={gerando}
+              className="w-full py-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 transition-all"
+            >
+              {gerando ? 'Gerando...' : 'Gerar Site'}
+            </button>
+          </div>
+        </div>
+
+        {/* LISTA DE SITES */}
+        <div className="lg:col-span-2 space-y-3">
+          {meusSites.length === 0 ? (
+            <div className="p-8 border border-dashed border-white/10 rounded-xl text-center text-slate-500 text-sm">
+              Nenhum projeto ainda.
+            </div>
+          ) : (
+            meusSites.map(site => (
+              <div
+                key={site.id}
+                className="bg-white/[0.03] border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row gap-3 justify-between"
+              >
+                <div className="truncate">
+                  <p className="text-sm font-bold truncate">
+                    {site.conteudo?.headline || 'Sem título'}
+                  </p>
+                  <a
+                    href={`/s/${site.slug}`}
+                    target="_blank"
+                    className="text-[11px] text-emerald-400"
+                  >
+                    Abrir site ↗
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => deletarSite(site.id)}
+                  className="px-4 py-2 text-[11px] border border-red-500/30 text-red-400 rounded-lg"
+                >
+                  Excluir
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
