@@ -87,49 +87,35 @@ Retorne APENAS este JSON:
     const cleanJson = responseText.replace(/```json|```/g, "").trim();
     const aiData = JSON.parse(cleanJson);
 
-    // 🖼️ Fallback de imagem
-    const fallbackImage =
+    // 🖼️ Imagem padrão (fallback)
+    let urlFinal =
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop";
 
-    async function buscarImagem(termo: string) {
-      if (!process.env.PEXELS_API_KEY) return fallbackImage;
-
+    // 🔍 Busca no Pexels se tiver chave
+    if (process.env.PEXELS_API_KEY) {
       try {
-        const res = await fetch(
+        const termoBusca = aiData.keyword_ingles || produto;
+        const pexelsRes = await fetch(
           `https://api.pexels.com/v1/search?query=${encodeURIComponent(
-            termo
+            termoBusca
           )}&per_page=1&orientation=landscape`,
           { headers: { Authorization: process.env.PEXELS_API_KEY } }
         );
-
-        if (!res.ok) return fallbackImage;
-
-        const data = await res.json();
-        if (data.photos?.length > 0) {
-          return data.photos[0].src.large2x;
+        if (pexelsRes.ok) {
+          const pexelsData = await pexelsRes.json();
+          if (pexelsData.photos?.length > 0) {
+            urlFinal = pexelsData.photos[0].src.large2x;
+          }
         }
       } catch (e) {
         console.error("Erro ao buscar imagem no Pexels:", e);
       }
-
-      return fallbackImage;
     }
-
-    // 🔍 Termos de busca para as imagens
-    const termoBase = aiData.keyword_ingles || produto;
-
-    const imagemHero = await buscarImagem(termoBase);
-    const imagemSecao1 = await buscarImagem(`${termoBase} product`);
-    const imagemSecao2 = await buscarImagem(`${termoBase} service`);
 
     // 🔧 Conteúdo final salvo no banco
     const conteudoFinal = {
       ...aiData,
-      imagens: {
-        hero: imagemHero,
-        secao1: imagemSecao1,
-        secao2: imagemSecao2,
-      },
+      imagem: urlFinal,
       whatsapp: whatsapp ? whatsapp.replace(/\D/g, "") : null,
     };
 
@@ -165,4 +151,3 @@ Retorne APENAS este JSON:
     );
   }
         }
-
