@@ -60,7 +60,13 @@ export default function SitePage() {
       <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 text-center overflow-hidden">
         {conteudo?.imagem && (
           <div className="absolute inset-0 z-0">
-            <img src={conteudo.imagem} alt="Background" className="w-full h-full object-cover scale-105" />
+            {/* 🔒 Reservando espaço fixo da imagem */}
+            <img
+              src={conteudo.imagem}
+              alt="Background"
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/50 via-[#020617]/90 to-[#020617]" />
           </div>
         )}
@@ -90,7 +96,7 @@ export default function SitePage() {
             <ul className="grid gap-3">
               {beneficios.map((b: string, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-slate-300 text-sm">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full mt-1" />
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full mt-1 flex-shrink-0" />
                   <span>{b}</span>
                 </li>
               ))}
@@ -98,6 +104,9 @@ export default function SitePage() {
           </div>
         </section>
       )}
+
+      {/* 🔒 Espaço reservado pro CTA (evita pulo) */}
+      <div className="h-24 md:hidden" />
 
       {/* CTA FIXO */}
       <div className="fixed bottom-4 left-0 w-full px-4 z-50 md:static md:pb-20">
