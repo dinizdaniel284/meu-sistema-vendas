@@ -1,3 +1,4 @@
+/* App/globals.css */
 @import "tailwindcss";
 
 @layer base {
@@ -5,6 +6,8 @@
     --background: #020617;
     --foreground: #f8fafc;
     --accent: #10b981; /* Esmeralda DinizDev */
+
+    color-scheme: dark;
   }
 
   body {
@@ -13,11 +16,18 @@
     font-family: var(--font-inter), sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, .font-syne {
     font-family: var(--font-syne), sans-serif;
     letter-spacing: -0.04em;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -26,6 +36,7 @@
   .glass {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
@@ -65,16 +76,24 @@
   animation: progress-line 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 🖱️ Custom Scrollbar (Luxo) */
+.animate-fade-in {
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ♿ Respeita usuários que preferem menos animação */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* 🖱️ Custom Scrollbar (Luxo) - WebKit */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -91,3 +110,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+/* 🦊 Scrollbar Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b var(--background);
+    }
