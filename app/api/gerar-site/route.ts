@@ -28,27 +28,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
 
-    // 🧠 PROMPT OTIMIZADO
+    // 🧠 PROMPT PROFISSIONAL (CONTEÚDO LONGO E ESTRUTURADO)
     const prompt = `
-Você é um copywriter de elite, especialista em VSL e Landing Pages de alta conversão.
-Gere um material de vendas persuasivo e luxuoso para o produto: "${produto}".
+Você é um copywriter profissional especializado em landing pages de alta conversão.
 
-Regras:
-1. Headline curta e chamativa que capture atenção imediata.
-2. Subheadline que explique o benefício principal.
-3. "guia_completo": 3 parágrafos separados por \\n\\n, explicando solução e autoridade.
-4. "beneficios": 3 a 5 itens curtos, diretos, focando dor e solução.
-5. "keyword_ingles": use palavras de busca para encontrar imagens comerciais no Pexels.
+Crie um conteúdo COMPLETO, detalhado e persuasivo para o produto/serviço: "${produto}".
 
-Retorne apenas o JSON:
+Regras IMPORTANTES:
+- Escreva em português do Brasil.
+- O texto deve parecer de uma landing page real, não genérico.
+- Use linguagem clara, profissional e convincente.
+- Seja detalhado, sem ser enrolado.
+- Gere conteúdo suficiente para a página NÃO parecer vazia.
+
+Retorne APENAS este JSON:
+
 {
-  "headline": "...",
-  "subheadline": "...",
-  "guia_completo": "...",
-  "beneficios": ["...", "...", "..."],
-  "sobre_nos": "...",
-  "keyword_ingles": "..."
-}`;
+  "headline": "Título forte, curto e chamativo",
+  "subheadline": "Subtítulo explicando o principal benefício",
+  "intro": "2 a 3 parágrafos introduzindo o problema e a solução",
+  "descricao_longa": "3 a 5 parágrafos explicando o produto/serviço em profundidade, benefícios práticos e diferenciais",
+  "como_funciona": "Explique em 3 a 5 parágrafos como funciona, como a pessoa usa ou o que ela vai aprender/receber",
+  "beneficios": [
+    "Benefício escrito como frase completa e persuasiva",
+    "Outro benefício em forma de frase completa",
+    "Outro benefício em forma de frase completa",
+    "Outro benefício em forma de frase completa"
+  ],
+  "sobre": "1 a 2 parágrafos explicando quem está por trás ou a proposta do produto/serviço",
+  "fechamento": "1 a 2 parágrafos finais persuasivos incentivando a ação",
+  "keyword_ingles": "palavras em inglês para buscar imagem no Pexels"
+}
+`;
 
     // 🔁 Tenta 3x caso a IA dê erro
     let chatCompletion: any = null;
@@ -77,14 +88,17 @@ Retorne apenas o JSON:
     const aiData = JSON.parse(cleanJson);
 
     // 🖼️ Imagem padrão (fallback)
-    let urlFinal = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop";
+    let urlFinal =
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop";
 
     // 🔍 Busca no Pexels se tiver chave
     if (process.env.PEXELS_API_KEY) {
       try {
         const termoBusca = aiData.keyword_ingles || produto;
         const pexelsRes = await fetch(
-          `https://api.pexels.com/v1/search?query=${encodeURIComponent(termoBusca)}&per_page=1&orientation=landscape`,
+          `https://api.pexels.com/v1/search?query=${encodeURIComponent(
+            termoBusca
+          )}&per_page=1&orientation=landscape`,
           { headers: { Authorization: process.env.PEXELS_API_KEY } }
         );
         if (pexelsRes.ok) {
@@ -98,7 +112,7 @@ Retorne apenas o JSON:
       }
     }
 
-    // 🔧 Conteúdo final
+    // 🔧 Conteúdo final salvo no banco
     const conteudoFinal = {
       ...aiData,
       imagem: urlFinal,
@@ -114,7 +128,9 @@ Retorne apenas o JSON:
       .replace(/(^-|-$)/g, "")
       .slice(0, 30);
 
-    const slugUnico = `${tagBusca}-${Math.random().toString(36).substring(2, 7)}`;
+    const slugUnico = `${tagBusca}-${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
 
     const { error: insertError } = await supabase.from("sites").insert([
       { slug: slugUnico, conteudo: conteudoFinal, user_id: userId },
@@ -134,4 +150,4 @@ Retorne apenas o JSON:
       { status: 500 }
     );
   }
-}
+               }
