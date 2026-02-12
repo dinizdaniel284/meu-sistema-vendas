@@ -32,26 +32,36 @@ export default function SitePage() {
     fetchSite();
   }, [params.slug]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center text-emerald-500 font-black">
-      Carregando site...
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center text-emerald-500 font-black">
+        Carregando site...
+      </div>
+    );
 
-  if (!site) return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center text-red-500 font-black">
-      Site não encontrado
-    </div>
-  );
+  if (!site)
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center text-red-500 font-black">
+        Site não encontrado
+      </div>
+    );
 
   const { conteudo } = site || {};
   const waNumber = conteudo?.whatsapp?.replace(/\D/g, '') || '';
+
   const beneficiosRaw = conteudo?.beneficios || [];
   const beneficios = Array.isArray(beneficiosRaw)
     ? beneficiosRaw
     : typeof beneficiosRaw === 'string'
-      ? beneficiosRaw.split(',').map((b: string) => b.trim())
-      : [];
+    ? beneficiosRaw.split(',').map((b: string) => b.trim())
+    : [];
+
+  const comoFuncionaRaw = conteudo?.como_funciona || [];
+  const comoFunciona = Array.isArray(comoFuncionaRaw)
+    ? comoFuncionaRaw
+    : typeof comoFuncionaRaw === 'string'
+    ? comoFuncionaRaw.split('\n').map((b: string) => b.trim())
+    : [];
 
   return (
     <main className="min-h-screen bg-[#020617] text-white font-sans overflow-x-hidden">
@@ -60,7 +70,6 @@ export default function SitePage() {
       <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 text-center overflow-hidden">
         {conteudo?.imagem && (
           <div className="absolute inset-0 z-0">
-            {/* 🔒 Reservando espaço fixo da imagem */}
             <img
               src={conteudo.imagem}
               alt="Background"
@@ -88,11 +97,22 @@ export default function SitePage() {
         </div>
       </section>
 
+      {/* DESCRIÇÃO LONGA */}
+      {conteudo?.descricao_longa && (
+        <section className="py-12 px-4 max-w-4xl mx-auto space-y-4 text-slate-300 leading-relaxed">
+          {conteudo.descricao_longa.split('\n\n').map((p: string, i: number) => (
+            <p key={i}>{p}</p>
+          ))}
+        </section>
+      )}
+
       {/* BENEFÍCIOS */}
       {beneficios.length > 0 && (
         <section className="py-12 px-4 max-w-4xl mx-auto">
           <div className="bg-white/5 border border-white/10 p-6 sm:p-8 rounded-3xl space-y-4">
-            <h2 className="text-emerald-500 font-black uppercase text-sm tracking-[0.4em]">Por que escolher</h2>
+            <h2 className="text-emerald-500 font-black uppercase text-sm tracking-[0.4em]">
+              Por que escolher
+            </h2>
             <ul className="grid gap-3">
               {beneficios.map((b: string, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-slate-300 text-sm">
@@ -105,17 +125,48 @@ export default function SitePage() {
         </section>
       )}
 
-      {/* 🔒 Espaço reservado pro CTA (evita pulo) */}
+      {/* COMO FUNCIONA */}
+      {comoFunciona.length > 0 && (
+        <section className="py-12 px-4 max-w-4xl mx-auto">
+          <h2 className="text-center text-emerald-500 font-black uppercase text-sm tracking-[0.4em] mb-6">
+            Como funciona
+          </h2>
+          <div className="grid gap-4">
+            {comoFunciona.map((passo: string, i: number) => (
+              <div
+                key={i}
+                className="bg-white/5 border border-white/10 p-4 rounded-2xl text-slate-300 text-sm"
+              >
+                {passo}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SOBRE NÓS */}
+      {conteudo?.sobre_nos && (
+        <section className="py-12 px-4 max-w-3xl mx-auto text-center text-slate-300 space-y-4">
+          <h2 className="text-emerald-500 font-black uppercase text-sm tracking-[0.4em]">
+            Sobre nós
+          </h2>
+          <p className="leading-relaxed">{conteudo.sobre_nos}</p>
+        </section>
+      )}
+
+      {/* 🔒 Espaço reservado pro CTA (evita pulo no mobile) */}
       <div className="h-24 md:hidden" />
 
-      {/* CTA FIXO */}
+      {/* CTA */}
       <div className="fixed bottom-4 left-0 w-full px-4 z-50 md:static md:pb-20">
         <a
-          href={`https://wa.me/${waNumber}?text=Olá! Gostaria de saber mais sobre ${encodeURIComponent(conteudo?.headline || 'o produto')}`}
+          href={`https://wa.me/${waNumber}?text=Olá! Gostaria de saber mais sobre ${encodeURIComponent(
+            conteudo?.headline || 'o produto'
+          )}`}
           target="_blank"
           className="block w-full md:max-w-md mx-auto bg-emerald-500 hover:bg-emerald-400 text-black text-center py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-[0_20px_40px_rgba(16,185,129,0.3)] active:scale-95 text-sm"
         >
-          Quero Garantir Agora
+          {conteudo?.cta_final || 'Quero Garantir Agora'}
           <span className="block text-[10px] opacity-70 font-medium mt-1">
             Link seguro para WhatsApp
           </span>
@@ -131,4 +182,4 @@ export default function SitePage() {
 
     </main>
   );
-}
+      }
