@@ -9,15 +9,23 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+type PreviewData = {
+  headline: string;
+  subheadline: string;
+  guia_completo: string;
+  beneficios: string[];
+  imagem: string;
+  whatsapp?: string;
+};
+
 export default function GeradorPage() {
   const [produto, setProduto] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [gerando, setGerando] = useState(false);
   const [meusSites, setMeusSites] = useState<any[]>([]);
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<PreviewData | null>(null);
   const router = useRouter();
 
-  // Carrega sites do usuário
   async function carregarSites() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -33,18 +41,21 @@ export default function GeradorPage() {
 
   useEffect(() => { carregarSites(); }, []);
 
-  // Atualiza preview conforme inputs
+  // Preview estável (sem pular layout)
   useEffect(() => {
     setPreview({
       headline: produto || 'Produto Incrível',
-      subheadline: 'Qualidade garantida',
-      whatsapp: whatsapp,
-      beneficios: ['Benefício 1', 'Benefício 2', 'Benefício 3'],
-      imagem: 'https://via.placeholder.com/800x400.png?text=Seu+Produto'
+      subheadline: 'Uma solução moderna para o seu problema',
+      guia_completo:
+        'Este é um material demonstrativo para mostrar como seu site ficará.\n\n' +
+        'Quando você gerar de verdade, a IA vai escrever um texto persuasivo completo.\n\n' +
+        'Aqui você já consegue visualizar a estrutura final da página.',
+      beneficios: ['Rápido', 'Simples', 'Funciona no celular', 'Pronto para vender'],
+      imagem: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop',
+      whatsapp,
     });
   }, [produto, whatsapp]);
 
-  // Função gerar site
   async function gerarKitVendas() {
     if (gerando || !produto || !whatsapp) return;
 
@@ -62,12 +73,10 @@ export default function GeradorPage() {
       const result = await response.json();
 
       if (response.ok) {
-        // Salva o último site gerado para preview local
         localStorage.setItem('last_generated_site', JSON.stringify(result));
         setProduto('');
         setWhatsapp('');
         await carregarSites();
-        // Redireciona para o site final
         router.push(`/s/${result.slug}`);
       } else {
         alert("Erro: " + (result.error || "Tente novamente"));
@@ -78,7 +87,7 @@ export default function GeradorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10 flex flex-col gap-10">
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-10 flex flex-col gap-10 overflow-x-hidden">
       {gerando && <LoadingGerador />}
 
       <header className="flex justify-between items-center mb-6">
@@ -122,20 +131,39 @@ export default function GeradorPage() {
         </div>
 
         {/* PREVIEW */}
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 min-h-[520px]">
           <h2 className="text-sm font-bold mb-4">Pré-visualização</h2>
+
           {preview ? (
             <div className="space-y-4">
-              <div className="h-40 md:h-52 bg-black/40 rounded-xl overflow-hidden">
-                <img src={preview.imagem} className="w-full h-full object-cover" alt="Preview" />
+              <div className="w-full aspect-video bg-black/40 rounded-xl overflow-hidden">
+                <img
+                  src={preview.imagem}
+                  className="w-full h-full object-cover"
+                  alt="Preview"
+                />
               </div>
-              <h3 className="font-black text-lg md:text-2xl">{preview.headline}</h3>
-              <p className="text-slate-400 text-sm md:text-base">{preview.subheadline}</p>
+
+              <h3 className="font-black text-lg md:text-2xl">
+                {preview.headline}
+              </h3>
+
+              <p className="text-slate-400 text-sm md:text-base">
+                {preview.subheadline}
+              </p>
+
+              <div className="space-y-2 text-slate-300 text-sm">
+                {preview.guia_completo.split('\n\n').map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+
               <ul className="list-disc list-inside text-slate-300 text-sm">
-                {preview.beneficios.map((b: string, i: number) => (
+                {preview.beneficios.map((b, i) => (
                   <li key={i}>{b}</li>
                 ))}
               </ul>
+
               {preview.whatsapp && (
                 <a
                   href={`https://wa.me/${preview.whatsapp.replace(/\D/g, '')}?text=Olá! Quero saber mais sobre ${encodeURIComponent(preview.headline)}`}
@@ -147,12 +175,14 @@ export default function GeradorPage() {
               )}
             </div>
           ) : (
-            <p className="text-slate-500 text-sm">Preencha os campos para ver a pré-visualização.</p>
+            <p className="text-slate-500 text-sm">
+              Preencha os campos para ver a pré-visualização.
+            </p>
           )}
         </div>
       </div>
 
-      {/* Lista de sites do usuário */}
+      {/* Lista de sites */}
       <section className="mt-10">
         <h2 className="text-sm font-bold mb-4">Meus Projetos</h2>
         <div className="space-y-3">
@@ -165,8 +195,14 @@ export default function GeradorPage() {
                 className="bg-white/[0.03] border border-white/5 p-3 rounded-xl flex flex-col sm:flex-row gap-3 justify-between"
               >
                 <div className="truncate">
-                  <p className="text-sm font-bold truncate">{site.conteudo?.headline || 'Sem título'}</p>
-                  <a href={`/s/${site.slug}`} target="_blank" className="text-[11px] text-emerald-400">
+                  <p className="text-sm font-bold truncate">
+                    {site.conteudo?.headline || 'Sem título'}
+                  </p>
+                  <a
+                    href={`/s/${site.slug}`}
+                    target="_blank"
+                    className="text-[11px] text-emerald-400"
+                  >
                     Abrir site ↗
                   </a>
                 </div>
